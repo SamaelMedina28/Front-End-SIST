@@ -7,7 +7,6 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
-import { ModulePlaceholder } from "@/components/shared/module-placeholder";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,7 +104,6 @@ export function TicketListExperience({ filters, role, supportAreas = [] }: { fil
     : scopedFilters;
   const admin = role === "ADMIN";
   const query = useTickets(safeFilters, (role === "USER" || technicalRole || admin) && (!hasSubcategoryFilter || catalogReady));
-  if (role !== "USER" && !technicalRole && !admin) return <ModulePlaceholder title="Tickets" description="Esta vista se implementará en la siguiente etapa." />;
   if (hasSubcategoryFilter && !catalogReady) return <TicketListSkeleton />;
   if (query.isPending) return <TicketListSkeleton />;
   if (query.isError) return <ErrorState title={admin ? "No se pudo cargar la administración de tickets" : role === "SUPPORT" || role === "SUB_MANAGER" ? "No se pudo cargar la cola de soporte" : "No se pudieron cargar tus tickets"} message={query.error instanceof Error ? query.error.message : "Ocurrió un error inesperado."} requestId={query.error instanceof ApiError ? query.error.requestId : undefined} onRetry={() => { void query.refetch(); }} />;

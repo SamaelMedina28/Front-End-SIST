@@ -15,7 +15,7 @@ export function useCreateTicket() {
     onSuccess: async () => {
       await Promise.all([
         client.invalidateQueries({ queryKey: ticketsKey }),
-        client.invalidateQueries({ queryKey: dashboardKey, exact: true }),
+        client.invalidateQueries({ queryKey: dashboardKey }),
       ]);
     },
   });

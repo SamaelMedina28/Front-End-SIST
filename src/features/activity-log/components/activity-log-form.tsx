@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 
 import { ErrorState } from "@/components/shared/error-state";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -69,26 +69,17 @@ export function ActivityLogEditForm({ entry, onCancel, onSaved }: { entry: Activ
 }
 
 export function ActivityLogCreateBlock({ ticketId }: { ticketId?: string }) {
-  const createForm = useForm({ resolver: zodResolver(z.object({
-    ticketId: z.string().min(1, "Selecciona un ticket."),
-    activity: z.string().min(1, "Describe la actividad."),
-    participantIds: z.array(z.string()).min(1, "Selecciona al menos un participante."),
-    serviceStartedAt: z.string().min(1, "Indica el inicio del servicio."),
-    serviceEndedAt: z.string(),
-    timeSpentMinutes: z.number().finite(),
-    status: z.enum(["IN_PROGRESS", "COMPLETED"]),
-  })), defaultValues: { ticketId: ticketId ?? "", activity: "", participantIds: [], serviceStartedAt: "", serviceEndedAt: "", timeSpentMinutes: 0, status: "IN_PROGRESS" as const } });
-  return <section className="grid gap-5"><div><p className="text-sm">La API requiere ticket, participantes, descripción, fechas, duración y estado para crear una bitácora.</p>{ticketId ? <p className="mt-2 text-sm text-muted-foreground">El ticket relacionado quedó preseleccionado desde su detalle.</p> : <p className="mt-2 text-sm text-muted-foreground">Abre el registro desde el detalle de un ticket para vincularlo sin buscar o descargar tickets globalmente.</p>}</div>
-    <form className="grid gap-4 rounded-xl border bg-surface p-4" onSubmit={(event) => event.preventDefault()}>
-      <input type="hidden" {...createForm.register("ticketId")} />
-      <div className="grid gap-1.5"><label htmlFor="create-activity">Actividad</label><Textarea id="create-activity" {...createForm.register("activity")} /></div>
-      <div className="grid gap-4 sm:grid-cols-2"><div className="grid gap-1.5"><label htmlFor="create-start">Inicio (hora de Tijuana)</label><Input id="create-start" type="datetime-local" {...createForm.register("serviceStartedAt")} /></div><div className="grid gap-1.5"><label htmlFor="create-end">Fin (opcional, hora de Tijuana)</label><Input id="create-end" type="datetime-local" {...createForm.register("serviceEndedAt")} /></div></div>
-      <div className="grid gap-4 sm:grid-cols-2"><div className="grid gap-1.5"><label htmlFor="create-duration">Tiempo invertido (minutos)</label><Input id="create-duration" step="any" type="number" {...createForm.register("timeSpentMinutes", { valueAsNumber: true })} /></div><div className="grid gap-1.5"><label htmlFor="create-status">Estado</label><Select id="create-status" {...createForm.register("status")}>{Object.entries(activityLogStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></div></div>
-      <fieldset className="rounded-lg border border-warning/40 bg-warning/5 p-4"><legend className="px-1 text-sm font-semibold">Participantes requeridos</legend><p className="text-sm leading-6">El campo <code>participantIds</code> se conserva como requerido por OpenAPI, pero no hay un catálogo autorizado de SUPPORT/SUB_MANAGER. No usamos el endpoint ADMIN-only <code>/support-members</code>, no inventamos identidades y no enviamos una lista vacía.</p></fieldset>
-      <Button disabled type="submit" variant="primary">Registrar actividad</Button>
-    </form>
-    {!ticketId && <Link className="text-sm text-primary underline" href="/tickets">Buscar un ticket desde la cola</Link>}
-    {ticketId && <p><Link className="text-sm text-primary underline" href={`/tickets/${ticketId}`}>Volver al ticket</Link></p>}
+  return <section aria-labelledby="activity-create-blocker" className="grid gap-5">
+    <div className="rounded-xl border border-warning/50 bg-warning/10 p-5" role="note">
+      <h2 className="font-semibold" id="activity-create-blocker">No es posible registrar una bitácora todavía</h2>
+      <p className="mt-2 text-sm leading-6">El backend exige <code>participantIds</code> para crear el registro, pero no ofrece un catálogo autorizado de participantes para SUB_MANAGER. Por seguridad, esta pantalla no solicita identidades por una vía no autorizada ni envía una lista vacía.</p>
+      {ticketId && <p className="mt-2 text-sm text-muted-foreground">Ticket seleccionado: <span className="font-mono">{ticketId}</span></p>}
+      <p className="mt-2 text-sm">La función podrá habilitarse cuando el backend publique un catálogo de participantes específico y autorizado.</p>
+    </div>
+    <div className="flex flex-wrap gap-3">
+      {ticketId && <Link className={buttonVariants({ variant: "outline" })} href={`/tickets/${ticketId}`}>Volver al ticket</Link>}
+      <Link className={buttonVariants({ variant: "outline" })} href="/activity-log">Volver a bitácora</Link>
+    </div>
   </section>;
 }
 

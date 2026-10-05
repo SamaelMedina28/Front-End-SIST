@@ -2,9 +2,9 @@
 
 ## Alcance
 
-La interfaz inicial es light, institucional, sobria y orientada a claridad. El
-showcase temporal está disponible en `/design-system` y no representa una
-pantalla funcional del producto.
+La interfaz es light, institucional, sobria y orientada a claridad. El
+showcase temporal de `/design-system` se retiró del producto; los tokens y
+componentes compartidos siguen documentados aquí y en `src/components/ui`.
 
 ## Paleta y tokens
 
@@ -28,9 +28,9 @@ grises para evitar saturación.
 
 ## Tipografía
 
-La pila es `Proxima Nova`, `Inter`, `Arial`, sans-serif. No se incluyen fuentes
-propietarias en el repositorio; Inter se resuelve desde el sistema cuando está
-disponible.
+La pila es `Inter`, `ui-sans-serif`, `system-ui`, sans-serif. No se incluyen
+archivos propietarios de Proxima Nova ni una descarga externa de fuentes; el
+sistema operativo proporciona el fallback.
 
 ## Espaciado, radios y layout
 
@@ -65,9 +65,10 @@ textuales de error.
 
 ## Logo
 
-No existe todavía un asset oficial en el repositorio. `public/brand/` queda
-reservado para `uabc-logo.svg`; no debe redibujarse, recolorearse ni descargarse
-arbitrariamente. `AppLogo` mantiene un placeholder textual temporal.
+No existe todavía un asset oficial en el repositorio. `AppLogo` muestra una
+marca textual “UABC”; no es el logotipo oficial. No redibujar ni sustituir por
+un archivo no autorizado. Integrar el asset oficial cuando la institución lo
+proporcione.
 
 ## Decisiones y límites del paso 1
 
@@ -75,8 +76,8 @@ arbitrariamente. `AppLogo` mantiene un placeholder textual temporal.
   TypeScript estricto, mientras que Turbopack falla en este entorno restringido
   al intentar crear un proceso que enlace un puerto durante el procesamiento de
   CSS. Esta elección no desactiva type checking ni lint.
-- No hay OAuth, RBAC, `auth/me`, cliente HTTP ni endpoints consumidos.
-- No hay datos ficticios permanentes ni mock APIs; los ejemplos de la página
-  showcase son exclusivamente visuales.
+- El showcase con datos de demostración se eliminó y no es una ruta del producto.
+- No hay datos ficticios permanentes ni mock APIs en runtime; los fixtures
+  sintéticos se limitan a pruebas.
 - No se implementa dark mode ni un toggle de tema.
 - Las animaciones se limitan a transiciones pequeñas, focus y overlays.

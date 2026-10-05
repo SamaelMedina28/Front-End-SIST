@@ -98,11 +98,12 @@ describe("activity log role-aware experience", () => {
     managerPage.unmount();
   });
 
-  it("blocks POST without inventing or dropping the required participantIds", () => {
+  it("explains the participant catalog blocker without exposing a nonfunctional form or calling APIs", () => {
     renderPage(<ActivityLogCreateBlock ticketId={ticketId} />, manager);
-    expect(screen.getByText("Participantes requeridos")).toBeTruthy();
-    expect(screen.getByText(/El campo/)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Registrar actividad" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("heading", { name: "No es posible registrar una bitácora todavía" })).toBeTruthy();
+    expect(screen.getByText(/participantIds/u)).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Volver al ticket" }).getAttribute("href")).toBe(`/tickets/${ticketId}`);
+    expect(screen.queryByLabelText("Actividad")).toBeNull();
     expect(requests).toHaveLength(0);
   });
 });

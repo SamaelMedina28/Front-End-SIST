@@ -89,7 +89,7 @@ export function TicketDetailView({ ticketId }: { ticketId: string }) {
       {ticket.software && <Card><CardHeader><CardTitle>Detalles del software solicitado</CardTitle></CardHeader><CardContent><dl className="grid gap-4 sm:grid-cols-2">
         {ticket.software.name && <div><dt className="text-xs text-muted-foreground">Software</dt><dd className="mt-1 font-medium">{ticket.software.name}</dd></div>}
         {ticket.software.version && <div><dt className="text-xs text-muted-foreground">Versión</dt><dd className="mt-1 font-medium">{ticket.software.version}</dd></div>}
-        {ticket.software.downloadUrl && <div className="min-w-0"><dt className="text-xs text-muted-foreground">Enlace de descarga</dt><dd className="mt-1 break-all text-sm">{downloadUrl ? <a className="text-primary underline" href={downloadUrl} rel="noreferrer" target="_blank">{ticket.software.downloadUrl}</a> : ticket.software.downloadUrl}</dd></div>}
+        {ticket.software.downloadUrl && <div className="min-w-0"><dt className="text-xs text-muted-foreground">Enlace de descarga</dt><dd className="mt-1 break-all text-sm">{downloadUrl ? <a className="text-primary underline" href={downloadUrl} rel="noopener noreferrer" target="_blank">{ticket.software.downloadUrl}</a> : ticket.software.downloadUrl}</dd></div>}
         {ticket.software.coordinationApprovalReference && <div><dt className="text-xs text-muted-foreground">Referencia de autorización</dt><dd className="mt-1 font-medium">{ticket.software.coordinationApprovalReference}</dd></div>}
       </dl></CardContent></Card>}
       {ticket.inventoryItem && <Card><CardHeader><CardTitle>Equipo relacionado</CardTitle></CardHeader><CardContent><dl className="grid gap-4 sm:grid-cols-3">

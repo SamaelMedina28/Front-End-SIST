@@ -16,11 +16,11 @@
 - `/profile`: permite editar solo nombre y teléfono mediante `PATCH /users/me`;
   correo e identificador institucional se muestran como datos no editables.
 
-Los roles de soporte, subgerencia y administración conservan placeholders en las
-vistas del dashboard, listado y perfil hasta sus pasos. El detalle reutilizable
-permanece de solo lectura. El RoleGuard y Express siguen siendo responsables de
-la política y autorización; la interfaz solo orienta y no sustituye controles del
-backend.
+La vista de perfil se comparte entre USER, SUPPORT, SUB_MANAGER y ADMIN. Cada
+rol conserva las vistas de dashboard y tickets propias; el detalle reutilizable
+permanece de solo lectura para USER. El RoleGuard y Express siguen siendo
+responsables de política y autorización; la interfaz solo orienta y no sustituye
+los controles del backend.
 
 ## Contrato y comportamiento
 

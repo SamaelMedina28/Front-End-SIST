@@ -11,6 +11,7 @@ import { TicketListExperience } from "../src/features/tickets/components/ticket-
 import { CreateTicketForm } from "../src/features/tickets/components/create-ticket-form";
 import { TicketDetailView } from "../src/features/tickets/components/ticket-detail-view";
 import { ProfileForm } from "../src/features/profile/components/profile-form";
+import { ProfilePageView } from "../src/features/profile/components/profile-page-view";
 import { currentUserKey } from "../src/features/auth/queries/current-user";
 import { jsonResponse, errorResponse, testUser } from "./auth-fixture";
 
@@ -246,6 +247,14 @@ describe("ticket detail and event timeline", () => {
 });
 
 describe("editable user profile", () => {
+  it("shows the shared profile form for staff and ADMIN roles", async () => {
+    const staffUser = { ...testUser, role: "SUB_MANAGER" as const };
+    endpoint("GET", "/api/v1/auth/me", () => success(staffUser));
+    renderWithClient(<ProfilePageView />);
+    expect(await screen.findByRole("heading", { name: "Mi perfil" })).toBeTruthy();
+    expect(screen.getByLabelText("Nombre completo")).toBeTruthy();
+  });
+
   it("sends only fullName and phone and invalidates the shared current-user cache", async () => {
     let submitted: unknown;
     endpoint("PATCH", "/api/v1/users/me", async (request) => { submitted = JSON.parse(await request.text()); return success({ ...testUser, fullName: "Nombre actualizado", phone: null }); });

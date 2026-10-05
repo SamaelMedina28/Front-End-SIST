@@ -12,7 +12,7 @@ import { ActivityReportView } from "../src/features/reports/components/activity-
 import { activityReportKey } from "../src/features/reports/queries/activity-report";
 import type { ActivityReport, ActivityReportFilters } from "../src/features/reports/api";
 import type { CurrentUser } from "../src/features/auth/api";
-import { dashboardKey } from "../src/features/tickets/queries/dashboard";
+import { adminDashboardKey, dashboardKey, supportDashboardKey, userDashboardKey } from "../src/features/tickets/queries/dashboard";
 import { errorResponse, jsonResponse, testUser } from "./auth-fixture";
 
 const { push, replace } = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
@@ -75,6 +75,10 @@ afterEach(() => {
 });
 
 describe("ADMIN dashboard", () => {
+  it("uses a distinct cache entry for each role-specific dashboard contract", () => {
+    expect(new Set([userDashboardKey.join("/"), supportDashboardKey.join("/"), adminDashboardKey.join("/")]).size).toBe(3);
+  });
+
   it("selects the ADMIN dashboard by session role and renders real metrics and workload", async () => {
     const { client } = renderWithClient(<DashboardExperience />);
     expect(await screen.findByText("Panel administrativo")).toBeTruthy();
@@ -85,7 +89,8 @@ describe("ADMIN dashboard", () => {
     expect(screen.getAllByText("Ana López")).toHaveLength(2);
     expect(screen.getAllByText("Completados hoy")).toHaveLength(2);
     expect(requests.filter((request) => new URL(request.url).pathname === "/api/v1/dashboard")).toHaveLength(1);
-    expect(client.getQueryState(dashboardKey)?.status).toBe("success");
+    expect(client.getQueryState(adminDashboardKey)?.status).toBe("success");
+    expect(client.getQueryState(dashboardKey)?.status).toBeUndefined();
   });
 
   it("shows loading and empty workload states", async () => {

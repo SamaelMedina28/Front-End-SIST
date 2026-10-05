@@ -40,6 +40,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 /** Resolves role policy from the shared route table, then composes with the existing session gate. */
 export function RoleGuard({ children, allowedRoles }: { children: ReactNode; allowedRoles?: readonly Role[] }) {
   const pathname = usePathname();
-  const routeRoles = allowedRoles ?? getRouteAccess(pathname)?.roles;
+  // Fail closed when a protected route has no declared RBAC policy.
+  const routeRoles = allowedRoles ?? getRouteAccess(pathname)?.roles ?? [];
   return <SessionGate mode="protected" allowedRoles={routeRoles}>{children}</SessionGate>;
 }

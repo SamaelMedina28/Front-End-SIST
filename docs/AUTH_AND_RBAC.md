@@ -32,8 +32,8 @@ navegador controla la presentación; Express mantiene la seguridad de sus APIs.
 | Grupo `(authenticated)` | PageSkeleton | AppShell y contenido | Reemplaza por `/login` | ErrorState y reintento |
 
 `/` redirige a `/login`. `/forbidden` presenta el mensaje de acceso restringido.
-`/design-system` sigue siendo un catálogo público de
-desarrollo y no contiene datos de sesión.
+La ruta temporal `/design-system` fue retirada; la guía del sistema de diseño
+permanece en `docs/DESIGN_SYSTEM.md`.
 
 ## Roles y permisos de interfaz
 
@@ -211,7 +211,14 @@ nombre largo se verificó mediante un HTML temporal renderizado desde el
 AppShell real y una fixture de test; ambos archivos temporales se retiraron.
 No se creó un usuario en Express ni una sesión simulada dentro de la app.
 
-La prueba OAuth institucional completa queda pendiente de ejecución manual.
-El Paso 4 entrega rutas protegidas y placeholders para Tickets, Nuevo ticket,
-Bitácora, Inventario, Reportes, Categorías, Personal de soporte y Perfil. Las
-features de negocio y el dashboard funcional quedan para etapas posteriores.
+La prueba OAuth institucional completa y el recorrido manual de cada rol quedan
+pendientes. El mapa de módulos implementados y sus límites está en
+`docs/FINAL_FRONTEND_AUDIT.md`.
+
+## Configuración CORS
+
+En desarrollo, Next se sirve en `http://localhost:3001` y Express en
+`http://localhost:3000`. El backend debe configurar `FRONTEND_URL` con el
+origen exacto del frontend y CORS debe permitir credenciales. En producción,
+ambos orígenes deben corresponder al despliegue HTTPS autorizado. El frontend
+no usa `no-cors` ni intenta leer las cookies.

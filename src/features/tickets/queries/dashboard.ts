@@ -6,10 +6,13 @@ import { shouldRetryQuery } from "@/lib/api/query-retry";
 import { fetchAdminDashboard, fetchSupportDashboard, fetchUserDashboard } from "../api";
 
 export const dashboardKey = ["dashboard"] as const;
+export const userDashboardKey = [...dashboardKey, "user"] as const;
+export const supportDashboardKey = [...dashboardKey, "support"] as const;
+export const adminDashboardKey = [...dashboardKey, "admin"] as const;
 
 export function userDashboardOptions() {
   return queryOptions({
-    queryKey: dashboardKey,
+    queryKey: userDashboardKey,
     queryFn: ({ signal }) => fetchUserDashboard(signal),
     staleTime: 30_000,
     retry: shouldRetryQuery,
@@ -22,7 +25,7 @@ export function useUserDashboard(enabled: boolean) {
 
 export function useSupportDashboard(enabled: boolean) {
   return useQuery({
-    queryKey: dashboardKey,
+    queryKey: supportDashboardKey,
     queryFn: ({ signal }) => fetchSupportDashboard(signal),
     staleTime: 30_000,
     retry: shouldRetryQuery,
@@ -32,7 +35,7 @@ export function useSupportDashboard(enabled: boolean) {
 
 export function useAdminDashboard(enabled: boolean) {
   return useQuery({
-    queryKey: dashboardKey,
+    queryKey: adminDashboardKey,
     queryFn: ({ signal }) => fetchAdminDashboard(signal),
     staleTime: 30_000,
     retry: shouldRetryQuery,

@@ -18,9 +18,9 @@
 - `/profile` sigue usando el formulario compartido. Role, áreas y skills no son
   editables por este módulo.
 
-ADMIN conserva los módulos fuera del alcance como placeholders. No se
-implementan inventario, reportes, administración ni asignación a terceros.
-La especificación de bitácora está en `ACTIVITY_LOG_MODULE.md`.
+ADMIN conserva vistas específicas para sus módulos administrativos. SUPPORT y
+SUB_MANAGER no reciben controles de prioridad ni de asignación a terceros. La
+especificación de bitácora está en `ACTIVITY_LOG_MODULE.md`.
 
 ## Contrato usado
 

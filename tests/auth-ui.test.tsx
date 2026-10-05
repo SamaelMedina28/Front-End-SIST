@@ -137,6 +137,14 @@ describe("role guard", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("fails closed for an authenticated route missing from the role policy", async () => {
+    pathname.current = "/unregistered-feature";
+    fetchMock.mockImplementation(async () => jsonResponse({ success: true, data: testUser }));
+    renderAuth(<RoleGuard><p>Contenido sin política</p></RoleGuard>);
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/forbidden"));
+    expect(screen.queryByText("Contenido sin política")).toBeNull();
+  });
+
   it("continues to send unauthenticated direct URLs to login", async () => {
     pathname.current = "/inventory";
     fetchMock.mockImplementation(async () => errorResponse(401));

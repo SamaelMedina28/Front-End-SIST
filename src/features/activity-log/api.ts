@@ -6,8 +6,7 @@ import type { components, paths } from "@/types/api.generated";
 export type ActivityLog = components["schemas"]["ActivityLogListItem"];
 export type ActivityLogDetail = components["schemas"]["ActivityLogDetail"];
 export type ActivityLogRevision = components["schemas"]["ActivityLogRevision"];
-export type ActivityLogStatus = components["schemas"]["ActivityLogCreateRequest"]["status"];
-export type ActivityLogCreateRequest = components["schemas"]["ActivityLogCreateRequest"];
+export type ActivityLogStatus = components["schemas"]["ActivityLogListItem"]["status"];
 export type ActivityLogPatchRequest = components["schemas"]["ActivityLogPatchRequest"];
 export type ActivityLogFilters = NonNullable<paths["/api/v1/activity-log"]["get"]["parameters"]["query"]>;
 export type ActivityLogPageMeta = components["schemas"]["PaginatedActivityLogsResponse"]["meta"];
@@ -33,12 +32,6 @@ export async function fetchActivityLog(id: string, signal?: AbortSignal): Promis
 export async function fetchActivityLogHistory(id: string, signal?: AbortSignal): Promise<ActivityLogRevision[]> {
   const data = await requestApi(() => getBrowserClient().GET("/api/v1/activity-log/{id}/history", { params: { path: { id } }, signal }));
   if (!Array.isArray(data)) throw ApiError.unexpected();
-  return data;
-}
-
-export async function createActivityLog(body: ActivityLogCreateRequest) {
-  const data = await requestApi(() => getBrowserClient().POST("/api/v1/activity-log", { body }));
-  if (!data || typeof data.id !== "string") throw ApiError.unexpected();
   return data;
 }
 

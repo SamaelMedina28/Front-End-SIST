@@ -56,10 +56,11 @@ layout raíz; no existe un segundo contexto de usuario. El contrato generado
 define los tipos y Express valida permisos, estado activo y sesión. Las páginas
 server solo componen vistas; no implementan un BFF ni leen credenciales.
 
-El Design System permanece compartido. AppShell recibe datos de sesión mediante
-props; su showcase puede renderizarlo sin usuario. El logo continúa siendo el
-placeholder textual documentado. Las variables públicas viven en `.env.local`
-(ignorado); se documentan en `.env.example`.
+Los tokens y primitives del Design System permanecen compartidos, pero su ruta
+de showcase temporal ya se retiró y no forma parte del producto. AppShell
+recibe datos de sesión mediante props. El logo continúa siendo una marca
+textual provisional, no un asset oficial. Las variables públicas viven en
+`.env.local` (ignorado) y se documentan en `.env.example`.
 
 Ver `AUTH_AND_RBAC.md` para rutas, matriz de roles, transiciones, errores y
 limpieza de caché. La navegación de escritorio y móvil comparte la misma
