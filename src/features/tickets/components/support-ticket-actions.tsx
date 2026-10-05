@@ -96,8 +96,7 @@ export function SupportTicketActions({ ticket, user, onRefresh }: { ticket: Tick
           <div className="flex flex-wrap gap-2">{allowedNext.map((status) => {
             const terminalAction = status === "COMPLETED" || status === "CANCELLED";
             return <Button disabled={isPending} key={status} onClick={() => terminalAction ? openConfirmation(status) : submitStatus(status)} variant={status === "CANCELLED" ? "outline" : "primary"}>
-              {isPending ? <LoaderCircle aria-hidden="true" className="animate-spin" size={16} /> : status === "COMPLETED" ? <CircleCheck aria-hidden="true" size={16} /> : status === "CANCELLED" ? <AlertTriangle aria-hidden="true" size={16} /> : <Check aria-hidden="true" size={16} />}
-              {statusActionLabels[status]}
+              {isPending ? <><LoaderCircle aria-hidden="true" className="animate-spin" size={16} />Actualizando estado…</> : <>{status === "COMPLETED" ? <CircleCheck aria-hidden="true" size={16} /> : status === "CANCELLED" ? <AlertTriangle aria-hidden="true" size={16} /> : <Check aria-hidden="true" size={16} />}{statusActionLabels[status]}</>}
             </Button>;
           })}</div>
         </div>

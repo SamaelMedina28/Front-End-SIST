@@ -17,17 +17,18 @@ import { ApiError } from "@/lib/api/api-error";
 import type { Role } from "@/types/api";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/features/auth/queries/current-user";
-import type { TicketFilters } from "../api";
+import type { SupportArea, TicketFilters } from "../api";
 import { useTicketFormCatalog } from "../queries/ticket-form";
 import { useTickets } from "../queries/tickets";
 import { ticketFilterEntries, parseTicketFilters } from "../utils/ticket-filters";
 import { TicketListItems } from "./ticket-list-items";
+import { isSupportArea, supportAreaLabel } from "../utils/support-area";
 
 function TicketListSkeleton() {
   return <div aria-label="Cargando tickets" className="grid gap-3" role="status">{[0, 1, 2, 3].map((item) => <div className="h-24 animate-pulse rounded-xl bg-muted" key={item} />)}</div>;
 }
 
-function Filters({ filters, role }: { filters: TicketFilters; role: Role }) {
+function Filters({ filters, role, supportAreas }: { filters: TicketFilters; role: Role; supportAreas: SupportArea[] }) {
   const router = useRouter();
   const catalog = useTicketFormCatalog(true);
   const [categoryId, setCategoryId] = useState(filters.categoryId ?? "");
@@ -46,6 +47,7 @@ function Filters({ filters, role }: { filters: TicketFilters; role: Role }) {
       sort: String(form.get("sort") ?? ""),
       order: String(form.get("order") ?? ""),
       assignment: role === "SUPPORT" ? String(form.get("assignment") ?? "") : undefined,
+      supportArea: role === "SUPPORT" ? String(form.get("supportArea") ?? "") : undefined,
       pageSize: filters.pageSize === undefined ? undefined : String(filters.pageSize),
       createdFrom: filters.createdFrom,
       createdTo: filters.createdTo,
@@ -59,8 +61,9 @@ function Filters({ filters, role }: { filters: TicketFilters; role: Role }) {
     <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-status">Estado</label><Select defaultValue={filters.status ?? ""} id="ticket-status" name="status"><option value="">Todos</option>{Object.entries(ticketStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></div>
     <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-priority">Prioridad</label><Select defaultValue={filters.priority ?? ""} id="ticket-priority" name="priority"><option value="">Todas</option>{Object.entries(ticketPriorityLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></div>
     {role === "SUPPORT" && <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-assignment">Asignación</label><Select defaultValue={filters.assignment ?? ""} id="ticket-assignment" name="assignment"><option value="">Todas</option><option value="unassigned">Sin asignar</option><option value="mine">Asignadas a mí</option><option value="assigned">Asignadas</option></Select></div>}
-    {role === "USER" && <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-category">Categoría</label><Select disabled={catalog.isPending || catalog.isError} id="ticket-category" value={categoryId} onChange={(event) => { setCategoryId(event.target.value); setSubcategoryId(""); }}><option value="">Todas</option>{catalog.data?.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</Select></div>}
-    {role === "USER" && <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-subcategory">Subcategoría</label><Select disabled={!selectedCategory} id="ticket-subcategory" value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{selectedCategory?.subcategories.map((subcategory) => <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>)}</Select></div>}
+    {role === "SUPPORT" && <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-support-area">Área de soporte</label><Select defaultValue={filters.supportArea ?? ""} id="ticket-support-area" name="supportArea"><option value="">Todas mis áreas</option>{supportAreas.map((area) => <option key={area} value={area}>{supportAreaLabel(area)}</option>)}</Select></div>}
+    {(role === "USER" || role === "SUPPORT") && <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-category">Categoría</label><Select disabled={catalog.isPending || catalog.isError} id="ticket-category" value={categoryId} onChange={(event) => { setCategoryId(event.target.value); setSubcategoryId(""); }}><option value="">Todas</option>{catalog.data?.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</Select></div>}
+    {(role === "USER" || role === "SUPPORT") && <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-subcategory">Subcategoría</label><Select disabled={!selectedCategory} id="ticket-subcategory" value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{selectedCategory?.subcategories.map((subcategory) => <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>)}</Select></div>}
     <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-sort">Ordenar por</label><Select defaultValue={filters.sort ?? ""} id="ticket-sort" name="sort"><option value="">Predeterminado</option><option value="createdAt">Fecha de creación</option><option value="updatedAt">Última actualización</option><option value="priority">Prioridad</option><option value="status">Estado</option><option value="code">Código</option></Select></div>
     <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-order">Dirección</label><Select defaultValue={filters.order ?? ""} id="ticket-order" name="order"><option value="">Predeterminada</option><option value="desc">Descendente</option><option value="asc">Ascendente</option></Select></div>
     {filters.createdFrom && <input name="createdFrom" type="hidden" value={filters.createdFrom} />}
@@ -70,11 +73,11 @@ function Filters({ filters, role }: { filters: TicketFilters; role: Role }) {
   </form>;
 }
 
-export function TicketListExperience({ filters, role }: { filters: TicketFilters; role: Role }) {
+export function TicketListExperience({ filters, role, supportAreas = [] }: { filters: TicketFilters; role: Role; supportAreas?: SupportArea[] }) {
   const router = useRouter();
-  const catalog = useTicketFormCatalog(role === "USER");
+  const catalog = useTicketFormCatalog(role === "USER" || role === "SUPPORT");
   const scopedFilters = role === "USER" ? { ...filters, assignment: undefined, assignedTo: undefined, supportArea: undefined } : filters;
-  const hasSubcategoryFilter = role === "USER" && !!scopedFilters.subcategoryId;
+  const hasSubcategoryFilter = (role === "USER" || role === "SUPPORT") && !!scopedFilters.subcategoryId;
   const catalogReady = catalog.isSuccess || catalog.isError;
   const validSubcategory = catalog.data?.categories.some((category) =>
     (!scopedFilters.categoryId || category.id === scopedFilters.categoryId)
@@ -83,7 +86,7 @@ export function TicketListExperience({ filters, role }: { filters: TicketFilters
   const safeFilters = hasSubcategoryFilter && catalogReady && !validSubcategory
     ? { ...scopedFilters, subcategoryId: undefined }
     : scopedFilters;
-  const query = useTickets(safeFilters, (role === "USER" && (!hasSubcategoryFilter || catalogReady)) || role === "SUPPORT");
+  const query = useTickets(safeFilters, (role === "USER" || role === "SUPPORT") && (!hasSubcategoryFilter || catalogReady));
   if (role !== "USER" && role !== "SUPPORT") return <ModulePlaceholder title="Tickets" description="Esta vista se implementará en la siguiente etapa." />;
   if (hasSubcategoryFilter && !catalogReady) return <TicketListSkeleton />;
   if (query.isPending) return <TicketListSkeleton />;
@@ -98,7 +101,7 @@ export function TicketListExperience({ filters, role }: { filters: TicketFilters
   };
   return <section className="grid min-w-0 gap-6">
     <PageHeader title={role === "SUPPORT" ? "Cola de soporte" : "Mis tickets"} description={role === "SUPPORT" ? "Consulta y atiende tickets visibles para tus áreas de soporte." : "Consulta el estado y seguimiento de tus solicitudes."} actions={role === "USER" ? <Link className={cn(buttonVariants({ variant: "primary" }))} href="/tickets/new"><Plus aria-hidden="true" size={17} />Nuevo ticket</Link> : undefined} />
-    <Filters filters={safeFilters} role={role} />
+    <Filters filters={safeFilters} role={role} supportAreas={supportAreas} />
     {page.tickets.length === 0 ? <EmptyState title={hasFilters ? "No hay tickets que coincidan con estos filtros." : role === "SUPPORT" ? "No hay solicitudes pendientes en tus áreas de soporte." : "Aún no tienes solicitudes de soporte."} description={role === "SUPPORT" ? "Cuando haya tickets visibles para tus áreas, aparecerán en esta cola." : "Puedes crear una solicitud para recibir asistencia técnica."} action={role === "USER" ? <Link className={cn(buttonVariants({ variant: "primary", size: "sm" }))} href="/tickets/new"><Plus aria-hidden="true" size={16} />Crear ticket</Link> : undefined} />
       : <>
             <TicketListItems showAssignee={role === "SUPPORT"} tickets={page.tickets} />
@@ -113,5 +116,6 @@ export function TicketListExperience({ filters, role }: { filters: TicketFilters
 export function TicketListView({ filters }: { filters: TicketFilters }) {
   const { data: user } = useCurrentUser();
   if (!user) return <TicketListSkeleton />;
-  return <TicketListExperience filters={filters} role={user.role} />;
+  const supportAreas = user.supportAreas.filter(isSupportArea);
+  return <TicketListExperience filters={filters} role={user.role} supportAreas={supportAreas} />;
 }

@@ -20,6 +20,13 @@ lectura de tickets conserva `meta` de paginación con `requestApiEnvelope`, mien
 `data`. Los módulos invalidan únicamente las queries afectadas y reutilizan
 `auth/me` como fuente de la sesión actual.
 
+El Paso 6 extiende `features/tickets` para SUPPORT: conserva las vistas USER,
+incorpora el dashboard de soporte, filtros de cola derivados del OpenAPI y
+controles asignados al detalle común. Las mutaciones viven en
+`mutations/support-actions.ts`, reutilizan el cliente compartido, desactivan
+retry y refrescan ticket, eventos, lista y dashboard. Solo PATCH de estado
+envía `Idempotency-Key`.
+
 TanStack Query es la única fuente del estado remoto. QueryProvider sigue en el
 layout raíz; no existe un segundo contexto de usuario. El contrato generado
 define los tipos y Express valida permisos, estado activo y sesión. Las páginas
@@ -32,6 +39,5 @@ placeholder textual documentado. Las variables públicas viven en `.env.local`
 
 Ver `AUTH_AND_RBAC.md` para rutas, matriz de roles, transiciones, errores y
 limpieza de caché. La navegación de escritorio y móvil comparte la misma
-configuración de UX-RBAC; Express conserva toda autorización real. El alcance,
-las reglas del formulario y las limitaciones del módulo actual están en
-`USER_MODULE.md`.
+configuración de UX-RBAC; Express conserva toda autorización real. Los alcances
+de negocio y límites actuales están en `USER_MODULE.md` y `SUPPORT_MODULE.md`.

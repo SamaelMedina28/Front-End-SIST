@@ -13,6 +13,7 @@ import { SupportTicketActions } from "../src/features/tickets/components/support
 import { currentUserKey } from "../src/features/auth/queries/current-user";
 import { dashboardKey } from "../src/features/tickets/queries/dashboard";
 import { ticketDetailKey, ticketEventsKey, ticketListKey } from "../src/features/tickets/queries/tickets";
+import { isSupportArea } from "../src/features/tickets/utils/support-area";
 import type { CurrentUser } from "../src/features/auth/api";
 import type { TicketDetail, TicketEvent } from "../src/features/tickets/api";
 import { jsonResponse, errorResponse, testUser } from "./auth-fixture";
@@ -29,6 +30,7 @@ const nativeShowModal = HTMLDialogElement.prototype.showModal;
 const nativeClose = HTMLDialogElement.prototype.close;
 
 const ticketId = "44444444-4444-4444-8444-444444444444";
+const categoryId = "11111111-1111-4111-8111-111111111111";
 const supportUser: CurrentUser = {
   ...testUser,
   id: "77777777-7777-4777-8777-777777777777",
@@ -68,6 +70,11 @@ const detail: TicketDetail = {
   assignedAt: null,
   completedAt: null,
   cancelledAt: null,
+};
+
+const ticketFormCatalog = {
+  maxActiveTickets: 10 as const,
+  categories: [{ id: categoryId, code: "EQUIP", name: "Equipo", supportArea: "HARDWARE" as const, defaultPriority: "MEDIUM" as const, requiresSoftwareDetails: false, subcategories: [] }],
 };
 
 function endpoint(method: string, path: string, handler: Handler) {
@@ -153,21 +160,27 @@ describe("SUPPORT queue", () => {
     endpoint("GET", "/api/v1/tickets", (request) => {
       const params = new URL(request.url).searchParams;
       expect(params.get("assignment")).toBe("unassigned");
+      expect(params.get("supportArea")).toBe("NETWORKS");
+      expect(params.get("categoryId")).toBe(categoryId);
       return success([{ ...ticket, assignee: { id: supportUser.id, fullName: supportUser.fullName } }], 200, { page: 1, pageSize: 5, total: 6, totalPages: 2 });
     });
-    const view = renderWithClient(<TicketListExperience filters={{ page: 1, pageSize: 5, assignment: "unassigned" }} role="SUPPORT" />);
+    endpoint("GET", "/api/v1/catalog/ticket-form", () => success(ticketFormCatalog));
+    const view = renderWithClient(<TicketListExperience filters={{ page: 1, pageSize: 5, assignment: "unassigned", supportArea: "NETWORKS", categoryId }} role="SUPPORT" supportAreas={supportUser.supportAreas.filter(isSupportArea)} />);
     expect(await screen.findByText("Cola de soporte")).toBeTruthy();
     expect(screen.getByLabelText("Asignación")).toBeTruthy();
+    expect(screen.getByLabelText("Área de soporte")).toBeTruthy();
+    expect(screen.getByLabelText("Categoría")).toBeTruthy();
     expect(screen.getAllByText("Persona de prueba").length).toBeGreaterThan(0);
     expect(await screen.findByText("Página 1 de 2 · 6 tickets")).toBeTruthy();
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Siguiente" }));
-    expect(push).toHaveBeenCalledWith("/tickets?page=2&pageSize=5&assignment=unassigned");
+    expect(push).toHaveBeenCalledWith(`/tickets?page=2&pageSize=5&assignment=unassigned&supportArea=NETWORKS&categoryId=${categoryId}`);
     expect(view.container.querySelector("[aria-label='Tickets de soporte']")).toBeTruthy();
   });
 
   it("shows an empty state and keeps SUB_MANAGER on its staged placeholder", async () => {
     endpoint("GET", "/api/v1/tickets", () => success([], 200, { page: 1, pageSize: 10, total: 0, totalPages: 0 }));
+    endpoint("GET", "/api/v1/catalog/ticket-form", () => success(ticketFormCatalog));
     renderWithClient(<TicketListExperience filters={{}} role="SUPPORT" />);
     expect(await screen.findByText("No hay solicitudes pendientes en tus áreas de soporte.")).toBeTruthy();
     cleanup();
@@ -175,6 +188,20 @@ describe("SUPPORT queue", () => {
     renderWithClient(<TicketListExperience filters={{}} role="SUB_MANAGER" />);
     expect(await screen.findByText("Esta vista se implementará en la siguiente etapa.")).toBeTruthy();
     expect(requests).toHaveLength(0);
+  });
+
+  it("shows queue loading and backend error states", async () => {
+    let resolveList: ((response: Response) => void) | undefined;
+    endpoint("GET", "/api/v1/catalog/ticket-form", () => success(ticketFormCatalog));
+    endpoint("GET", "/api/v1/tickets", () => new Promise<Response>((resolve) => { resolveList = resolve; }));
+    renderWithClient(<TicketListExperience filters={{}} role="SUPPORT" />);
+    expect(screen.getByRole("status", { name: "Cargando tickets" })).toBeTruthy();
+    resolveList?.(success([], 200, { page: 1, pageSize: 10, total: 0, totalPages: 0 }));
+    expect(await screen.findByText("No hay solicitudes pendientes en tus áreas de soporte.")).toBeTruthy();
+    cleanup();
+    endpoint("GET", "/api/v1/tickets", () => errorResponse(403, "QUEUE_FORBIDDEN"));
+    renderWithClient(<TicketListExperience filters={{}} role="SUPPORT" />);
+    expect(await screen.findByText("No se pudo cargar la cola de soporte")).toBeTruthy();
   });
 });
 
@@ -243,6 +270,22 @@ describe("SUPPORT ticket actions", () => {
     renderWithClient(<SupportTicketActions onRefresh={vi.fn()} ticket={{ ...assignedToSelf, assignee: { id: "88888888-8888-4888-8888-888888888888", fullName: "Otro técnico" } }} user={supportUser} />);
     expect(screen.getByText("Este ticket está asignado a Otro técnico. La vista es de solo lectura.")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Marcar en revisión" })).toBeNull();
+  });
+
+  it("locks status submission while pending and shows the backend conflict without retry", async () => {
+    let resolveStatus: ((response: Response) => void) | undefined;
+    endpoint("PATCH", `/api/v1/tickets/${ticketId}/status`, () => new Promise<Response>((resolve) => { resolveStatus = resolve; }));
+    const assignedToSelf = { ...detail, assignee: { id: supportUser.id, fullName: supportUser.fullName } };
+    const onRefresh = vi.fn();
+    renderWithClient(<SupportTicketActions onRefresh={onRefresh} ticket={assignedToSelf} user={supportUser} />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Marcar en revisión" }));
+    expect(screen.getByRole("button", { name: "Actualizando estado…" }).hasAttribute("disabled")).toBe(true);
+    resolveStatus?.(errorResponse(409, "INVALID_TRANSITION"));
+    expect((await screen.findByRole("alert")).textContent).toContain("Mensaje del servidor");
+    expect(requests.filter((request) => request.method === "PATCH")).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Volver a consultar el ticket" }));
+    expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 
   it("requires a cancellation note, confirms terminal change, and sends the generated header", async () => {

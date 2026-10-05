@@ -134,7 +134,7 @@ describe("USER ticket listing", () => {
     expect(await screen.findByText("Aún no tienes solicitudes de soporte.")).toBeTruthy();
     cleanup();
     fetchMock.mockClear();
-    renderWithClient(<TicketListExperience filters={{}} role="SUPPORT" />);
+    renderWithClient(<TicketListExperience filters={{}} role="SUB_MANAGER" />);
     expect(await screen.findByText("Esta vista se implementará en la siguiente etapa.")).toBeTruthy();
     expect(fetchMock).not.toHaveBeenCalled();
   });
