@@ -4,7 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
-import { PageSkeleton } from "@/components/shared/loading-state";
+import { LoadingState, PageSkeleton } from "@/components/shared/loading-state";
 import { ApiError } from "@/lib/api/api-error";
 import { useCurrentUser } from "../queries/current-user";
 import { AuthError } from "./auth-error";
@@ -23,7 +23,7 @@ export function SessionGate({ mode, children }: { mode: "login" | "onboarding" |
 
   useEffect(() => { if (target) router.replace(target); }, [router, target]);
 
-  if (loading || target) return <div role="status" aria-label="Verificando sesión" className="p-4"><PageSkeleton /></div>;
+  if (loading || target) return <div role="status" aria-label="Verificando sesión" className="min-w-0 p-4">{mode === "protected" ? <PageSkeleton /> : <LoadingState label="Verificando sesión" />}</div>;
   if (systemError) return <AuthError error={query.error} onRetry={() => { void query.refetch(); }} />;
   if (mode === "protected" && authenticated && query.data) return <AppShell user={query.data}>{children}</AppShell>;
   return children;

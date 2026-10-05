@@ -7,7 +7,7 @@ export interface NavigationItem {
 }
 
 export const navigationItems: NavigationItem[] = [
-  { label: "Inicio", href: "/design-system", icon: House },
+  { label: "Inicio", href: "/dashboard", icon: House },
   { label: "Tickets", href: "#tickets", icon: ClipboardList },
   { label: "Bitácora", href: "#bitacora", icon: FileClock },
   { label: "Inventario", href: "#inventario", icon: Boxes },

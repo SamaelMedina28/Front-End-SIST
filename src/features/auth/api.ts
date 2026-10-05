@@ -13,7 +13,7 @@ export function googleLoginUrl(backendUrl = getPublicEnvironment().NEXT_PUBLIC_B
 }
 
 export async function fetchCurrentUser(signal?: AbortSignal): Promise<CurrentUser> {
-  const user = await requestApi<CurrentUser>(() => getBrowserClient().GET("/api/v1/auth/me", { signal }));
+  const user = await requestApi(() => getBrowserClient().GET("/api/v1/auth/me", { signal }));
   if (!user || typeof user.id !== "string" || typeof user.fullName !== "string") {
     throw ApiError.unexpected();
   }
@@ -21,7 +21,7 @@ export async function fetchCurrentUser(signal?: AbortSignal): Promise<CurrentUse
 }
 
 export async function completeProfile(body: CompleteProfileInput): Promise<void> {
-  await requestApi<CurrentUser>(() => getBrowserClient().POST("/api/v1/auth/complete-profile", { body }));
+  await requestApi(() => getBrowserClient().POST("/api/v1/auth/complete-profile", { body }));
 }
 
 export async function logout(): Promise<void> {

@@ -39,7 +39,7 @@ export function CompleteProfileForm() {
       locked.current = false;
     }
   }
-  return <form noValidate onSubmit={handleSubmit(submit)} className="space-y-5" aria-busy={pending}>
+  return <form noValidate onSubmit={(event) => { void handleSubmit(submit)(event); }} className="space-y-5" aria-busy={pending}>
     <div className="space-y-2"><label htmlFor="institutionalId" className="text-sm font-medium">Matrícula o número de empleado <span aria-hidden="true">*</span></label>
       <Input id="institutionalId" autoComplete="off" readOnly={pending} required {...register("institutionalId")} aria-invalid={!!errors.institutionalId} aria-describedby={errors.institutionalId ? "institutionalId-error" : undefined} />
       {errors.institutionalId && <p id="institutionalId-error" role="alert" className="text-sm text-danger-foreground">{errors.institutionalId.message}</p>}

@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function LoadingState({ label = "Cargando información" }: { label?: string }) {
-  return <div aria-label={label} aria-live="polite" className="grid gap-4"><Skeleton className="h-6 w-48" /><Skeleton className="h-4 w-72 max-w-full" /><Skeleton className="h-36 w-full rounded-xl" /></div>;
+  return <div aria-label={label} aria-live="polite" className="grid min-w-0 grid-cols-1 gap-4"><Skeleton className="h-6 w-48 max-w-full" /><Skeleton className="h-4 w-72 max-w-full" /><Skeleton className="h-36 w-full rounded-xl" /></div>;
 }
 
 export function PageSkeleton() {
