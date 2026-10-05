@@ -1,5 +1,6 @@
 import { ticketPriorityLabels, ticketStatusLabels } from "@/lib/constants/presentation";
 import type { TicketFilters } from "@/features/tickets/api";
+import type { components } from "@/types/api.generated";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -27,12 +28,16 @@ function validInstant(value: string | undefined) {
   return value && !Number.isNaN(Date.parse(value)) ? value : undefined;
 }
 
+const supportAreas = ["HARDWARE", "SOFTWARE", "NETWORKS", "ADMINISTRATIVE"] satisfies components["schemas"]["Category"]["supportArea"][];
+
 export function parseTicketFilters(params: SearchParams): TicketFilters {
   const search = first(params.search)?.trim();
   const sort = first(params.sort);
   const order = first(params.order);
   const status = first(params.status);
   const priority = first(params.priority);
+  const assignment = first(params.assignment);
+  const supportArea = first(params.supportArea);
   return {
     page: positiveInteger(first(params.page)),
     pageSize: positiveInteger(first(params.pageSize)),
@@ -41,6 +46,8 @@ export function parseTicketFilters(params: SearchParams): TicketFilters {
     priority: isKeyOf(ticketPriorityLabels, priority) ? priority : undefined,
     categoryId: validUuid(first(params.categoryId)),
     subcategoryId: validUuid(first(params.subcategoryId)),
+    assignment: assignment === "mine" || assignment === "unassigned" || assignment === "assigned" ? assignment : undefined,
+    supportArea: supportAreas.find((area) => area === supportArea),
     createdFrom: validInstant(first(params.createdFrom)),
     createdTo: validInstant(first(params.createdTo)),
     sort: sort === "createdAt" || sort === "updatedAt" || sort === "priority" || sort === "status" || sort === "code" ? sort : undefined,

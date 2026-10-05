@@ -27,7 +27,7 @@ function TicketListSkeleton() {
   return <div aria-label="Cargando tickets" className="grid gap-3" role="status">{[0, 1, 2, 3].map((item) => <div className="h-24 animate-pulse rounded-xl bg-muted" key={item} />)}</div>;
 }
 
-function Filters({ filters }: { filters: TicketFilters }) {
+function Filters({ filters, role }: { filters: TicketFilters; role: Role }) {
   const router = useRouter();
   const catalog = useTicketFormCatalog(true);
   const [categoryId, setCategoryId] = useState(filters.categoryId ?? "");
@@ -45,6 +45,7 @@ function Filters({ filters }: { filters: TicketFilters }) {
       subcategoryId,
       sort: String(form.get("sort") ?? ""),
       order: String(form.get("order") ?? ""),
+      assignment: role === "SUPPORT" ? String(form.get("assignment") ?? "") : undefined,
       pageSize: filters.pageSize === undefined ? undefined : String(filters.pageSize),
       createdFrom: filters.createdFrom,
       createdTo: filters.createdTo,
@@ -57,6 +58,7 @@ function Filters({ filters }: { filters: TicketFilters }) {
     <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-search">Buscar por código o título</label><Input id="ticket-search" name="search" defaultValue={filters.search ?? ""} placeholder="Buscar tickets" /></div>
     <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-status">Estado</label><Select defaultValue={filters.status ?? ""} id="ticket-status" name="status"><option value="">Todos</option>{Object.entries(ticketStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></div>
     <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-priority">Prioridad</label><Select defaultValue={filters.priority ?? ""} id="ticket-priority" name="priority"><option value="">Todas</option>{Object.entries(ticketPriorityLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></div>
+    {role === "SUPPORT" && <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-assignment">Asignación</label><Select defaultValue={filters.assignment ?? ""} id="ticket-assignment" name="assignment"><option value="">Todas</option><option value="unassigned">Sin asignar</option><option value="mine">Asignadas a mí</option><option value="assigned">Asignadas</option></Select></div>}
     <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-category">Categoría</label><Select disabled={catalog.isPending || catalog.isError} id="ticket-category" value={categoryId} onChange={(event) => { setCategoryId(event.target.value); setSubcategoryId(""); }}><option value="">Todas</option>{catalog.data?.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</Select></div>
     <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-subcategory">Subcategoría</label><Select disabled={!selectedCategory} id="ticket-subcategory" value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{selectedCategory?.subcategories.map((subcategory) => <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>)}</Select></div>
     <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-sort">Ordenar por</label><Select defaultValue={filters.sort ?? ""} id="ticket-sort" name="sort"><option value="">Predeterminado</option><option value="createdAt">Fecha de creación</option><option value="updatedAt">Última actualización</option><option value="priority">Prioridad</option><option value="status">Estado</option><option value="code">Código</option></Select></div>
@@ -71,16 +73,17 @@ function Filters({ filters }: { filters: TicketFilters }) {
 export function TicketListExperience({ filters, role }: { filters: TicketFilters; role: Role }) {
   const router = useRouter();
   const catalog = useTicketFormCatalog(role === "USER");
-  const hasSubcategoryFilter = !!filters.subcategoryId;
+  const scopedFilters = role === "USER" ? { ...filters, assignment: undefined, assignedTo: undefined, supportArea: undefined } : filters;
+  const hasSubcategoryFilter = role === "USER" && !!scopedFilters.subcategoryId;
   const catalogReady = catalog.isSuccess || catalog.isError;
   const validSubcategory = catalog.data?.categories.some((category) =>
-    (!filters.categoryId || category.id === filters.categoryId)
-    && category.subcategories.some((subcategory) => subcategory.id === filters.subcategoryId),
+    (!scopedFilters.categoryId || category.id === scopedFilters.categoryId)
+    && category.subcategories.some((subcategory) => subcategory.id === scopedFilters.subcategoryId),
   );
   const safeFilters = hasSubcategoryFilter && catalogReady && !validSubcategory
-    ? { ...filters, subcategoryId: undefined }
-    : filters;
-  const query = useTickets(safeFilters, role === "USER" && (!hasSubcategoryFilter || catalogReady));
+    ? { ...scopedFilters, subcategoryId: undefined }
+    : scopedFilters;
+  const query = useTickets(safeFilters, (role === "USER" && (!hasSubcategoryFilter || catalogReady)) || role === "SUPPORT");
   if (role !== "USER") return <ModulePlaceholder title="Tickets" description="Esta vista se implementará en la siguiente etapa." />;
   if (hasSubcategoryFilter && !catalogReady) return <TicketListSkeleton />;
   if (query.isPending) return <TicketListSkeleton />;
@@ -88,17 +91,17 @@ export function TicketListExperience({ filters, role }: { filters: TicketFilters
   if (!query.data) return <TicketListSkeleton />;
 
   const page = query.data;
-  const hasFilters = !!(safeFilters.search || safeFilters.status || safeFilters.priority || safeFilters.categoryId || safeFilters.subcategoryId || safeFilters.createdFrom || safeFilters.createdTo);
+  const hasFilters = !!(safeFilters.search || safeFilters.status || safeFilters.priority || safeFilters.categoryId || safeFilters.subcategoryId || safeFilters.assignment || safeFilters.supportArea || safeFilters.createdFrom || safeFilters.createdTo);
   const queryString = (nextPage: number) => {
     const search = ticketFilterEntries({ ...filters, page: nextPage });
     return `/tickets?${search}`;
   };
   return <section className="grid min-w-0 gap-6">
-    <PageHeader title="Mis tickets" description="Consulta el estado y seguimiento de tus solicitudes." actions={<Link className={cn(buttonVariants({ variant: "primary" }))} href="/tickets/new"><Plus aria-hidden="true" size={17} />Nuevo ticket</Link>} />
-    <Filters filters={safeFilters} />
+    <PageHeader title={role === "SUPPORT" ? "Cola de soporte" : "Mis tickets"} description={role === "SUPPORT" ? "Consulta y atiende tickets visibles para tus áreas de soporte." : "Consulta el estado y seguimiento de tus solicitudes."} actions={role === "USER" ? <Link className={cn(buttonVariants({ variant: "primary" }))} href="/tickets/new"><Plus aria-hidden="true" size={17} />Nuevo ticket</Link> : undefined} />
+    <Filters filters={safeFilters} role={role} />
     {page.tickets.length === 0 ? <EmptyState title={hasFilters ? "No hay tickets que coincidan con estos filtros." : "Aún no tienes solicitudes de soporte."} description="Puedes crear una solicitud para recibir asistencia técnica." action={<Link className={cn(buttonVariants({ variant: "primary", size: "sm" }))} href="/tickets/new"><Plus aria-hidden="true" size={16} />Crear ticket</Link>} />
       : <>
-            <TicketListItems tickets={page.tickets} />
+            <TicketListItems showAssignee={role === "SUPPORT"} tickets={page.tickets} />
             <nav aria-label="Paginación de tickets" className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
               <p className="text-sm text-muted-foreground">Página {page.meta.page} de {page.meta.totalPages} · {page.meta.total} tickets</p>
               <div className="flex gap-2"><Button disabled={page.meta.page <= 1} onClick={() => router.push(queryString(page.meta.page - 1))} size="sm" variant="outline"><ChevronLeft aria-hidden="true" size={16} />Anterior</Button><Button disabled={page.meta.page >= page.meta.totalPages} onClick={() => router.push(queryString(page.meta.page + 1))} size="sm" variant="outline">Siguiente<ChevronRight aria-hidden="true" size={16} /></Button></div>

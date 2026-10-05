@@ -13,13 +13,42 @@ export type CreatedTicket = Pick<components["schemas"]["CreatedTicket"], "id">;
 export type TicketFilters = NonNullable<paths["/api/v1/tickets"]["get"]["parameters"]["query"]>;
 export type TicketPageMeta = components["schemas"]["PaginatedTicketsResponse"]["meta"];
 export type UserDashboard = components["schemas"]["UserDashboardResponse"]["data"];
+export type SupportDashboard = components["schemas"]["SupportDashboardResponse"]["data"];
+export type SupportArea = components["schemas"]["Category"]["supportArea"];
+export type TicketStatusInput = components["schemas"]["TicketStatusInput"];
+export type TicketStatus = TicketStatusInput["status"];
 type DashboardResponseData = UserDashboard
-  | components["schemas"]["SupportDashboardResponse"]["data"]
+  | SupportDashboard
   | components["schemas"]["AdminDashboardResponse"]["data"];
 
 export async function fetchUserDashboard(signal?: AbortSignal): Promise<UserDashboard> {
   const data = await requestApi<DashboardResponseData>(() => getBrowserClient().GET("/api/v1/dashboard", { signal }));
   if (!data || !("recentTickets" in data)) throw ApiError.unexpected();
+  return data;
+}
+
+export async function fetchSupportDashboard(signal?: AbortSignal): Promise<SupportDashboard> {
+  const data = await requestApi<DashboardResponseData>(() => getBrowserClient().GET("/api/v1/dashboard", { signal }));
+  if (!data || !("priorityTickets" in data)) throw ApiError.unexpected();
+  return data;
+}
+
+export async function assignTicketToSelf(ticketId: string) {
+  const data = await requestApi(() => getBrowserClient().POST("/api/v1/tickets/{id}/assign-self", {
+    params: { path: { id: ticketId } },
+    body: {},
+  }));
+  if (!data || typeof data.id !== "string") throw ApiError.unexpected();
+  return data;
+}
+
+export async function changeTicketStatus(ticketId: string, body: TicketStatusInput, idempotencyKey: string) {
+  const data = await requestApi(() => getBrowserClient().PATCH("/api/v1/tickets/{id}/status", {
+    params: { path: { id: ticketId } },
+    headers: { "Idempotency-Key": idempotencyKey },
+    body,
+  }));
+  if (!data || typeof data.id !== "string") throw ApiError.unexpected();
   return data;
 }
 

@@ -11,12 +11,12 @@ function ticketLocation(ticket: Ticket) {
   return [ticket.location.building, ticket.location.room].filter(Boolean).join(" · ") || "—";
 }
 
-export function TicketListItems({ tickets }: { tickets: Ticket[] }) {
+export function TicketListItems({ tickets, showAssignee = false }: { tickets: Ticket[]; showAssignee?: boolean }) {
   return <>
     <div className="hidden overflow-x-auto rounded-xl border bg-surface md:block">
       <Table>
         <caption className="sr-only">Tickets de soporte</caption>
-        <TableHeader><TableRow><TableHead>Código</TableHead><TableHead>Título</TableHead><TableHead>Categoría</TableHead><TableHead>Ubicación</TableHead><TableHead>Prioridad</TableHead><TableHead>Estado</TableHead><TableHead>Fecha</TableHead><TableHead><span className="sr-only">Acción</span></TableHead></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Código</TableHead><TableHead>Título</TableHead><TableHead>Categoría</TableHead><TableHead>Ubicación</TableHead><TableHead>Prioridad</TableHead><TableHead>Estado</TableHead>{showAssignee && <TableHead>Asignación</TableHead>}<TableHead>Fecha</TableHead><TableHead><span className="sr-only">Acción</span></TableHead></TableRow></TableHeader>
         <TableBody>{tickets.map((ticket) => <TableRow key={ticket.id}>
           <TableCell className="whitespace-nowrap font-mono text-xs font-semibold">{ticket.code}</TableCell>
           <TableCell className="min-w-48 max-w-72"><span className="line-clamp-2 font-medium">{ticket.title}</span></TableCell>
@@ -24,6 +24,7 @@ export function TicketListItems({ tickets }: { tickets: Ticket[] }) {
           <TableCell>{ticketLocation(ticket)}</TableCell>
           <TableCell><PriorityBadge priority={ticket.priority} /></TableCell>
           <TableCell><StatusBadge status={ticket.status} /></TableCell>
+          {showAssignee && <TableCell>{ticket.assignee?.fullName ?? "Sin asignar"}</TableCell>}
           <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{formatTicketDate(ticket.createdAt)}</TableCell>
           <TableCell><Link aria-label={`Ver ticket ${ticket.code}: ${ticket.title}`} className="inline-flex size-9 items-center justify-center rounded-md text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" href={`/tickets/${ticket.id}`}><ArrowRight aria-hidden="true" size={17} /></Link></TableCell>
         </TableRow>)}</TableBody>
@@ -37,6 +38,7 @@ export function TicketListItems({ tickets }: { tickets: Ticket[] }) {
           <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
             <div className="min-w-0"><dt className="text-muted-foreground">Categoría</dt><dd className="truncate font-medium">{ticket.category.name ?? "—"}</dd></div>
             <div className="min-w-0"><dt className="text-muted-foreground">Ubicación</dt><dd className="truncate font-medium">{ticketLocation(ticket)}</dd></div>
+            {showAssignee && <div className="min-w-0"><dt className="text-muted-foreground">Asignación</dt><dd className="truncate font-medium">{ticket.assignee?.fullName ?? "Sin asignar"}</dd></div>}
             <div className="col-span-2"><dt className="text-muted-foreground">Fecha</dt><dd className="font-medium">{formatTicketDate(ticket.createdAt)}</dd></div>
           </dl>
         </Link>

@@ -14,6 +14,7 @@ import { useCurrentUser } from "@/features/auth/queries/current-user";
 import { ModulePlaceholder } from "@/components/shared/module-placeholder";
 import { useUserDashboard } from "../queries/dashboard";
 import { TicketListItems } from "./ticket-list-items";
+import { SupportDashboardContent } from "./support-dashboard";
 
 function DashboardSkeleton() {
   return <div className="grid gap-6" aria-label="Cargando tu panel" role="status">
@@ -49,6 +50,7 @@ export function UserDashboardContent() {
 export function DashboardExperience() {
   const { data: user } = useCurrentUser();
   if (!user) return <DashboardSkeleton />;
-  if (user.role !== "USER") return <ModulePlaceholder title="Inicio" description="Esta vista se implementará en la siguiente etapa." />;
-  return <UserDashboardContent />;
+  if (user.role === "USER") return <UserDashboardContent />;
+  if (user.role === "SUPPORT") return <SupportDashboardContent />;
+  return <ModulePlaceholder title="Inicio" description="Esta vista se implementará en la siguiente etapa." />;
 }

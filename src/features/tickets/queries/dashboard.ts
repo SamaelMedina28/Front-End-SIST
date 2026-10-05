@@ -3,7 +3,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
 import { shouldRetryQuery } from "@/lib/api/query-retry";
-import { fetchUserDashboard } from "../api";
+import { fetchSupportDashboard, fetchUserDashboard } from "../api";
 
 export const dashboardKey = ["dashboard"] as const;
 
@@ -18,4 +18,14 @@ export function userDashboardOptions() {
 
 export function useUserDashboard(enabled: boolean) {
   return useQuery({ ...userDashboardOptions(), enabled });
+}
+
+export function useSupportDashboard(enabled: boolean) {
+  return useQuery({
+    queryKey: dashboardKey,
+    queryFn: ({ signal }) => fetchSupportDashboard(signal),
+    staleTime: 30_000,
+    retry: shouldRetryQuery,
+    enabled,
+  });
 }

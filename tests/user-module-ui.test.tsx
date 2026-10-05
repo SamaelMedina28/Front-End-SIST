@@ -122,6 +122,9 @@ describe("USER ticket listing", () => {
     expect(await screen.findByText("Página 1 de 2 · 6 tickets")).toBeTruthy();
     expect(screen.getAllByRole("link", { name: "Ver ticket TK-2026-0001: Proyector sin señal" })).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Siguiente" }).hasAttribute("disabled")).toBe(false);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Siguiente" }));
+    expect(push).toHaveBeenCalledWith("/tickets?page=2&pageSize=5");
   });
 
   it("uses an empty state and keeps staff on the staged placeholder", async () => {
@@ -136,7 +139,7 @@ describe("USER ticket listing", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("preserves filters in URL navigation and ignores malformed subcategory IDs", async () => {
+  it("ignores malformed subcategory IDs and serializes applied filters to the URL", async () => {
     endpoint("GET", "/api/v1/tickets", (request) => {
       expect(new URL(request.url).searchParams.get("subcategoryId")).toBeNull();
       return success([ticket], 200, { page: 1, pageSize: 5, total: 1, totalPages: 1 });
@@ -146,6 +149,10 @@ describe("USER ticket listing", () => {
     expect(await screen.findByText("Mis tickets")).toBeTruthy();
     expect((await screen.findAllByText("TK-2026-0001")).length).toBeGreaterThan(0);
     expect(view.container.querySelector("form")).toBeTruthy();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("Buscar por código o título"), "proyector");
+    await user.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+    expect(push).toHaveBeenCalledWith("/tickets?search=proyector&status=OPEN");
   });
 });
 
