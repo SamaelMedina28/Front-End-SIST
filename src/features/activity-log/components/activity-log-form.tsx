@@ -18,16 +18,11 @@ import { activityLogStatusLabels } from "../utils/presentation";
 
 const editSchema = z.object({
   activity: z.string().min(1, "Describe la actividad."),
-  serviceStartedAt: z.string().min(1, "Indica cuándo inició el servicio."),
-  serviceEndedAt: z.string(),
+  serviceStartedAt: z.string().min(1, "Indica cuándo inició el servicio.").refine((value) => !!tijuanaInputToIso(value), "Indica una fecha y hora válida de Tijuana."),
+  serviceEndedAt: z.string().refine((value) => !value || !!tijuanaInputToIso(value), "Indica una fecha y hora válida de Tijuana."),
   timeSpentMinutes: z.number().finite(),
   status: z.enum(["IN_PROGRESS", "COMPLETED"]),
-}).refine((values) => {
-  if (!values.serviceEndedAt) return true;
-  const start = tijuanaInputToIso(values.serviceStartedAt);
-  const end = tijuanaInputToIso(values.serviceEndedAt);
-  return !!start && !!end && Date.parse(end) >= Date.parse(start);
-}, { path: ["serviceEndedAt"], message: "El fin debe ser igual o posterior al inicio." });
+});
 
 type EditValues = z.infer<typeof editSchema>;
 

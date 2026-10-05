@@ -1,8 +1,9 @@
 # Autenticación y RBAC visual — Pasos 3 y 4
 
 Este documento cubre sesión, onboarding, logout y protección UX por rol.
-`/dashboard` reutiliza dashboard USER o técnico según el rol. Inventario y
-administración permanecen placeholders fuera del alcance actual.
+`/dashboard` reutiliza dashboard USER o técnico según el rol. Inventario está
+implementado para SUB_MANAGER y ADMIN; los demás módulos administrativos siguen
+fuera del alcance descrito en este documento.
 
 ## Autoridad y cookies
 
@@ -46,8 +47,8 @@ navegador.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | USER | Sí (Mis tickets) | Sí | No | No | No | No | Sí |
 | SUPPORT | Sí (técnico) | No | Sí (lectura) | No | No | No | Sí |
-| SUB_MANAGER | Sí (técnico) | No | Sí (lectura, editar e historial; POST bloqueado por catálogo de participantes) | Sí (placeholder) | No | No | Sí |
-| ADMIN | Sí (sin dashboard implementado) | No | Sí (lectura e historial) | Sí (placeholder) | No (placeholder) | No (fuera de alcance) | Sí |
+| SUB_MANAGER | Sí (técnico) | No | Sí (lectura, editar e historial; POST bloqueado por catálogo de participantes) | Sí (CRUD limitado por contrato; sin reactivación) | No | No | Sí |
+| ADMIN | Sí (sin dashboard implementado) | No | Sí (lectura e historial) | Sí (CRUD limitado por contrato; sin reactivación) | No (placeholder) | No (fuera de alcance) | Sí |
 
 Todos los roles autenticados conservan Inicio. La protección de URL usa
 coincidencia por segmento y la regla más específica prevalece; por ejemplo,

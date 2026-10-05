@@ -31,7 +31,7 @@ Para desbloquear POST, el backend debe exponer un endpoint de candidatos que SUB
 
 ## Fechas, duración y estado
 
-Los estados aceptados son `IN_PROGRESS` y `COMPLETED`, con labels “En proceso” y “Finalizado”. Los campos `datetime-local` de edición se interpretan explícitamente como `America/Tijuana` y se convierten a ISO UTC; las fechas de lectura se formatean en `es-MX` / `America/Tijuana`. Se rechaza en UX un fin anterior al inicio y una hora local inexistente durante el salto DST. `timeSpentMinutes` se captura como campo explícito; no se deriva del intervalo. No se añaden límites que el schema OpenAPI no documenta.
+Los estados aceptados son `IN_PROGRESS` y `COMPLETED`, con labels “En proceso” y “Finalizado”. Los campos `datetime-local` de edición se interpretan explícitamente como `America/Tijuana` y se convierten a ISO UTC; las fechas de lectura se formatean en `es-MX` / `America/Tijuana`. Se rechazan horas locales inexistentes durante el salto DST. El schema revisado no declara una regla de orden entre inicio y fin, así que no se impone esa validación. `timeSpentMinutes` se captura como campo explícito; no se deriva del intervalo. No se añaden límites que el schema OpenAPI no documenta.
 
 ## Edición e historial
 

@@ -4,7 +4,8 @@ Next App Router separa las entradas públicas (`/login`, `/auth/success`,
 `/auth/complete-profile`, `/forbidden`) del grupo `(authenticated)`. Su layout
 monta RoleGuard, compuesto con SessionGate: consulta Express desde el navegador,
 resuelve la política de ruta centralizada y presenta AppShell e hijos solo
-después de confirmar sesión y rol. Los módulos del Paso 4 son placeholders.
+después de confirmar sesión y rol. La política de roles permanece centralizada
+en la navegación.
 
 `src/features/auth/api.ts` agrupa las operaciones tipadas de autenticación sobre
 el cliente compartido. `queries/current-user.ts` define la clave y el hook de
@@ -34,6 +35,13 @@ Query. La creación se presenta desde el ticket, pero queda bloqueada por la
 ausencia de un catálogo de participantes autorizado para SUB_MANAGER; no se
 usa el endpoint ADMIN-only `/support-members`.
 
+El Paso 8 añade `features/inventory`: listado paginado con filtros URL,
+formularios discriminados por tipo, detalle incluso para artículos inactivos,
+PATCH parcial y desactivación soft-delete. El historial usa exclusivamente el
+endpoint por artículo y su propia paginación. SUB_MANAGER y ADMIN comparten las
+mismas vistas; el contrato OpenAPI generado define los payloads. Ver
+`INVENTORY_MODULE.md` para reglas, límites y verificación manual.
+
 TanStack Query es la única fuente del estado remoto. QueryProvider sigue en el
 layout raíz; no existe un segundo contexto de usuario. El contrato generado
 define los tipos y Express valida permisos, estado activo y sesión. Las páginas
@@ -47,4 +55,5 @@ placeholder textual documentado. Las variables públicas viven en `.env.local`
 Ver `AUTH_AND_RBAC.md` para rutas, matriz de roles, transiciones, errores y
 limpieza de caché. La navegación de escritorio y móvil comparte la misma
 configuración de UX-RBAC; Express conserva toda autorización real. Los alcances
-de negocio y límites actuales están en `USER_MODULE.md` y `SUPPORT_MODULE.md`.
+de negocio y límites actuales están en `USER_MODULE.md`, `SUPPORT_MODULE.md` e
+`INVENTORY_MODULE.md`.
