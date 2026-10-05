@@ -42,6 +42,15 @@ endpoint por artículo y su propia paginación. SUB_MANAGER y ADMIN comparten la
 mismas vistas; el contrato OpenAPI generado define los payloads. Ver
 `INVENTORY_MODULE.md` para reglas, límites y verificación manual.
 
+El Paso 9 implementa `features/categories` y `features/support-members` bajo
+rutas ADMIN-only ya declaradas en la tabla de navegación. Las categorías se
+administran con baja lógica y subcategorías anidadas; sus mutations invalidan
+`['categories']` y `['catalog', 'ticket-form']`. El personal técnico usa filtros
+y paginación server-side, detalle y preprovisionamiento OAuth sin credenciales;
+`isActive` se puede modificar por PATCH. Cada feature mantiene API, query keys,
+schemas y mutations propios. Los contratos y restricciones se documentan en
+`CATEGORIES_ADMIN_MODULE.md` y `SUPPORT_MEMBERS_ADMIN_MODULE.md`.
+
 TanStack Query es la única fuente del estado remoto. QueryProvider sigue en el
 layout raíz; no existe un segundo contexto de usuario. El contrato generado
 define los tipos y Express valida permisos, estado activo y sesión. Las páginas
@@ -55,5 +64,6 @@ placeholder textual documentado. Las variables públicas viven en `.env.local`
 Ver `AUTH_AND_RBAC.md` para rutas, matriz de roles, transiciones, errores y
 limpieza de caché. La navegación de escritorio y móvil comparte la misma
 configuración de UX-RBAC; Express conserva toda autorización real. Los alcances
-de negocio y límites actuales están en `USER_MODULE.md`, `SUPPORT_MODULE.md` e
-`INVENTORY_MODULE.md`.
+de negocio y límites actuales están en `USER_MODULE.md`, `SUPPORT_MODULE.md`,
+`INVENTORY_MODULE.md`, `CATEGORIES_ADMIN_MODULE.md` y
+`SUPPORT_MEMBERS_ADMIN_MODULE.md`.

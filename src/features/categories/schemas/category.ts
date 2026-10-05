@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Category, CategoryPriority, CreateCategoryRequest, CreateSubcategoryRequest, Subcategory, SubcategoryPriority, UpdateCategoryRequest, UpdateSubcategoryRequest } from "../api";
+import type { Category, CategoryPriority, CreateCategoryRequest, CreateSubcategoryRequest, Subcategory, UpdateCategoryRequest, UpdateSubcategoryRequest } from "../api";
 
 export const supportAreaOptions = ["HARDWARE", "SOFTWARE", "NETWORKS", "ADMINISTRATIVE"] as const satisfies readonly Category["supportArea"][];
 export const priorityOptions = ["LOW", "MEDIUM", "HIGH"] as const satisfies readonly CategoryPriority[];

@@ -29,6 +29,9 @@ describe("role-based navigation and route access", () => {
     for (const path of ["/activity-log", "/inventory", "/reports", "/admin/categories", "/admin/support-members", "/tickets/new"]) {
       expect(canAccess(role, path)).toBe(expected.allowed.includes(path));
     }
+    for (const path of ["/admin/categories/new", "/admin/support-members/new", "/admin/support-members/member-id", "/admin/support-members/member-id/edit"]) {
+      expect(canAccess(role, path)).toBe(role === "ADMIN");
+    }
   });
 
   it("uses segment-aware, most-specific active matching for nested paths", () => {

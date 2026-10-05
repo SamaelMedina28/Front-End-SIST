@@ -2,8 +2,8 @@
 
 Este documento cubre sesión, onboarding, logout y protección UX por rol.
 `/dashboard` reutiliza dashboard USER o técnico según el rol. Inventario está
-implementado para SUB_MANAGER y ADMIN; los demás módulos administrativos siguen
-fuera del alcance descrito en este documento.
+implementado para SUB_MANAGER y ADMIN. La administración de categorías y
+personal de soporte es exclusiva de ADMIN.
 
 ## Autoridad y cookies
 
@@ -48,7 +48,7 @@ navegador.
 | USER | Sí (Mis tickets) | Sí | No | No | No | No | Sí |
 | SUPPORT | Sí (técnico) | No | Sí (lectura) | No | No | No | Sí |
 | SUB_MANAGER | Sí (técnico) | No | Sí (lectura, editar e historial; POST bloqueado por catálogo de participantes) | Sí (CRUD limitado por contrato; sin reactivación) | No | No | Sí |
-| ADMIN | Sí (sin dashboard implementado) | No | Sí (lectura e historial) | Sí (CRUD limitado por contrato; sin reactivación) | No (placeholder) | No (fuera de alcance) | Sí |
+| ADMIN | Sí (dashboard aún placeholder) | No | Sí (lectura e historial) | Sí (CRUD limitado por contrato; sin reactivación) | No (placeholder) | Sí (categorías/subcategorías y personal SUPPORT/SUB_MANAGER) | Sí |
 
 Todos los roles autenticados conservan Inicio. La protección de URL usa
 coincidencia por segmento y la regla más específica prevalece; por ejemplo,
@@ -61,6 +61,16 @@ rutas anidadas sin confundir prefijos parciales.
 La ruta `/activity-log/new` tiene regla más específica: solo SUB_MANAGER puede
 acceder. El detalle `/activity-log/{id}` permanece en el grupo de roles de
 staff. USER continúa redirigido a `/forbidden`.
+
+`/admin/categories` y `/admin/support-members` son ADMIN-only; sus segmentos
+anidados (alta, detalle y edición) heredan la misma regla de ruta. USER, SUPPORT
+y SUB_MANAGER van a `/forbidden`. El formulario de personal técnico solo
+permite SUPPORT/SUB_MANAGER; `communityType` es un dato separado. El backend
+preprovisiona la cuenta y enlaza Google OAuth en el primer acceso, sin invitación
+ni contraseña local. PATCH admite `isActive`, por lo que la interfaz permite
+reactivación; DELETE es baja lógica y puede devolver conflicto por tickets
+activos asignados. Ver `CATEGORIES_ADMIN_MODULE.md` y
+`SUPPORT_MEMBERS_ADMIN_MODULE.md` para el contrato y las limitaciones exactas.
 
 El `RoleGuard` resuelve la política de la ruta y se compone con `SessionGate`:
 la sesión y el rol provienen de una única query `/auth/me`; no existe selector
