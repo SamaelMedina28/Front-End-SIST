@@ -9,7 +9,7 @@ import { currentUserKey } from "../queries/current-user";
 export async function clearSessionCache(client: QueryClient) {
   // Cancel before removal so an old response cannot repopulate private caches.
   await client.cancelQueries();
-  client.removeQueries({ predicate: (query) => query.queryKey[0] !== "auth" || query.queryKey[1] !== "me" });
+  client.removeQueries({ predicate: (query) => query.queryKey.length !== 2 || query.queryKey[0] !== "auth" || query.queryKey[1] !== "me" });
   client.setQueryData(currentUserKey, null);
   client.getMutationCache().clear();
 }
