@@ -6,6 +6,7 @@ import { AlertTriangle, Check, CircleCheck, LoaderCircle, UserRoundPlus } from "
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api/api-error";
+import { ticketStatusLabel } from "@/lib/constants/presentation";
 import type { CurrentUser } from "@/features/auth/api";
 import type { TicketDetail, TicketStatus } from "../api";
 import { useAssignTicketToSelf, useChangeTicketStatus } from "../mutations/support-actions";
@@ -34,7 +35,7 @@ function errorMessage(error: Error) {
   return error.message;
 }
 
-export function SupportTicketActions({ ticket, user, onRefresh }: { ticket: TicketDetail; user: CurrentUser; onRefresh: () => void }) {
+export function SupportTicketActions({ ticket, user, onRefresh, policy = "support" }: { ticket: TicketDetail; user: CurrentUser; onRefresh: () => void; policy?: "support" | "admin" }) {
   const assignMutation = useAssignTicketToSelf(ticket.id);
   const statusMutation = useChangeTicketStatus(ticket.id);
   const pendingRef = useRef(false);
@@ -43,11 +44,12 @@ export function SupportTicketActions({ ticket, user, onRefresh }: { ticket: Tick
   const [cancelNote, setCancelNote] = useState("");
   const [noteError, setNoteError] = useState("");
   const isPending = assignMutation.isPending || statusMutation.isPending;
+  const adminMode = policy === "admin" && user.role === "ADMIN";
   const area = isSupportArea(ticket.category.supportArea) ? ticket.category.supportArea : undefined;
-  const inMyArea = area !== undefined && user.supportAreas.includes(area);
+  const inMyArea = adminMode || (area !== undefined && user.supportAreas.includes(area));
   const assignedToMe = ticket.assignee?.id === user.id;
   const terminal = isTerminal(ticket.status);
-  const canAssign = inMyArea && !ticket.assignee && !terminal && ["OPEN", "IN_REVIEW", "IN_PROGRESS"].includes(ticket.status);
+  const canAssign = !adminMode && inMyArea && !ticket.assignee && !terminal && ["OPEN", "IN_REVIEW", "IN_PROGRESS"].includes(ticket.status);
   const allowedNext = transitions[ticket.status as TicketStatus] ?? [];
 
   function openConfirmation(action: "assign" | TicketStatus) {
@@ -88,8 +90,17 @@ export function SupportTicketActions({ ticket, user, onRefresh }: { ticket: Tick
       : { title: "Cancelar ticket", description: "La cancelación es terminal y requiere una nota para el historial.", label: "Confirmar cancelación" };
 
   return <section aria-labelledby="support-actions-title" className="grid min-w-0 gap-4 rounded-xl border bg-surface p-5">
-    <div><h2 className="text-base font-semibold" id="support-actions-title">Acciones de soporte</h2><p className="mt-1 text-sm text-muted-foreground">{area ? `Área: ${supportAreaLabel(area)}` : "Área de soporte no identificada en el contrato."}</p></div>
+    <div><h2 className="text-base font-semibold" id="support-actions-title">{adminMode ? "Estado del ticket" : "Acciones de soporte"}</h2><p className="mt-1 text-sm text-muted-foreground">{adminMode ? "Puedes actualizar el estado globalmente; el servidor valida las transiciones." : area ? `Área: ${supportAreaLabel(area)}` : "Área de soporte no identificada en el contrato."}</p></div>
     {terminal ? <p className="rounded-lg border bg-muted p-3 text-sm" role="status">Este ticket ya está finalizado.</p>
+      : adminMode ? <div className="grid gap-3">
+        <p className="text-sm">Estado actual: <span className="font-medium">{ticketStatusLabel(ticket.status)}</span></p>
+        <div className="flex flex-wrap gap-2">{allowedNext.map((status) => {
+          const terminalAction = status === "COMPLETED" || status === "CANCELLED";
+          return <Button disabled={isPending} key={status} onClick={() => terminalAction ? openConfirmation(status) : submitStatus(status)} variant={status === "CANCELLED" ? "outline" : "primary"}>
+            {isPending ? <><LoaderCircle aria-hidden="true" className="animate-spin" size={16} />Actualizando estado…</> : <>{status === "COMPLETED" ? <CircleCheck aria-hidden="true" size={16} /> : status === "CANCELLED" ? <AlertTriangle aria-hidden="true" size={16} /> : <Check aria-hidden="true" size={16} />}{statusActionLabels[status]}</>}
+          </Button>;
+        })}</div>
+      </div>
       : !inMyArea ? <p className="rounded-lg border bg-muted p-3 text-sm" role="status">Este ticket no corresponde a las áreas configuradas para tu cuenta. Las acciones están ocultas.</p>
         : assignedToMe ? <div className="grid gap-3">
           <p className="text-sm">Este ticket está asignado a ti. Puedes avanzar solo a los estados disponibles.</p>

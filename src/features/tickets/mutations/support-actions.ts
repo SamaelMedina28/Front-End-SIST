@@ -2,18 +2,9 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { ApiError } from "@/lib/api/api-error";
 import { assignTicketToSelf, changeTicketStatus, type TicketStatusInput } from "../api";
-import { dashboardKey } from "../queries/dashboard";
-import { ticketDetailKey, ticketEventsKey, ticketsKey } from "../queries/tickets";
-
-function invalidateTicketContext(queryClient: ReturnType<typeof useQueryClient>, ticketId: string) {
-  return Promise.all([
-    queryClient.invalidateQueries({ queryKey: ticketsKey }),
-    queryClient.invalidateQueries({ queryKey: ticketDetailKey(ticketId) }),
-    queryClient.invalidateQueries({ queryKey: ticketEventsKey(ticketId) }),
-    queryClient.invalidateQueries({ queryKey: dashboardKey }),
-  ]);
-}
+import { invalidateTicketContext } from "./invalidate-ticket-context";
 
 export function useAssignTicketToSelf(ticketId: string) {
   const queryClient = useQueryClient();
@@ -31,5 +22,8 @@ export function useChangeTicketStatus(ticketId: string) {
       changeTicketStatus(ticketId, body, idempotencyKey),
     retry: false,
     onSuccess: () => invalidateTicketContext(queryClient, ticketId),
+    onError: (error) => error instanceof ApiError && error.status === 409
+      ? invalidateTicketContext(queryClient, ticketId)
+      : undefined,
   });
 }

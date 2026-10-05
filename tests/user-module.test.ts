@@ -83,7 +83,8 @@ describe("URL ticket filter validation", () => {
   });
 
   it("parses only API-supported assignment and support-area filters", () => {
-    expect(parseTicketFilters({ assignment: "mine", supportArea: "NETWORKS" })).toMatchObject({ assignment: "mine", supportArea: "NETWORKS" });
-    expect(parseTicketFilters({ assignment: "everyone", supportArea: "OTHER" })).toMatchObject({ assignment: undefined, supportArea: undefined });
+    const assignedTo = "55555555-5555-4555-8555-555555555555";
+    expect(parseTicketFilters({ assignment: "mine", assignedTo, supportArea: "NETWORKS" })).toMatchObject({ assignment: "mine", assignedTo, supportArea: "NETWORKS" });
+    expect(parseTicketFilters({ assignment: "everyone", assignedTo: "not-a-uuid", supportArea: "OTHER" })).toMatchObject({ assignment: undefined, assignedTo: undefined, supportArea: undefined });
   });
 });

@@ -48,7 +48,7 @@ navegador.
 | USER | Sí (Mis tickets) | Sí | No | No | No | No | Sí |
 | SUPPORT | Sí (técnico) | No | Sí (lectura) | No | No | No | Sí |
 | SUB_MANAGER | Sí (técnico) | No | Sí (lectura, editar e historial; POST bloqueado por catálogo de participantes) | Sí (CRUD limitado por contrato; sin reactivación) | No | No | Sí |
-| ADMIN | Sí (dashboard aún placeholder) | No | Sí (lectura e historial) | Sí (CRUD limitado por contrato; sin reactivación) | No (placeholder) | Sí (categorías/subcategorías y personal SUPPORT/SUB_MANAGER) | Sí |
+| ADMIN | Sí (dashboard global y gestión de tickets) | No | Sí (lectura e historial) | Sí (CRUD limitado por contrato; sin reactivación) | Sí (actividad administrativa) | Sí (categorías/subcategorías y personal SUPPORT/SUB_MANAGER) | Sí |
 
 Todos los roles autenticados conservan Inicio. La protección de URL usa
 coincidencia por segmento y la regla más específica prevalece; por ejemplo,
@@ -71,6 +71,18 @@ ni contraseña local. PATCH admite `isActive`, por lo que la interfaz permite
 reactivación; DELETE es baja lógica y puede devolver conflicto por tickets
 activos asignados. Ver `CATEGORIES_ADMIN_MODULE.md` y
 `SUPPORT_MEMBERS_ADMIN_MODULE.md` para el contrato y las limitaciones exactas.
+
+La ruta `/tickets` comparte la experiencia por rol: el API entrega a ADMIN el
+alcance global, mientras USER y SUPPORT/SUB_MANAGER conservan sus ámbitos
+anteriores. Solo ADMIN obtiene asignación/reasignación/desasignación, cambio de
+prioridad y estado global. La API sigue validando asignación activa/compatible,
+transiciones y conflictos. Véase `ADMIN_TICKETS_MODULE.md`.
+
+`/dashboard` también usa el rol de la sesión para renderizar el panel ADMIN con
+las métricas y carga que devuelve `/api/v1/dashboard`; no acepta ni añade un rol
+en query. `/reports` se mantiene ADMIN-only y consume `/api/v1/reports/activity`
+con fechas y filtros de URL. USER, SUPPORT y SUB_MANAGER no ven los agregados
+administrativos. Véanse `ADMIN_DASHBOARD_MODULE.md` y `REPORTS_MODULE.md`.
 
 El `RoleGuard` resuelve la política de la ruta y se compone con `SessionGate`:
 la sesión y el rol provienen de una única query `/auth/me`; no existe selector

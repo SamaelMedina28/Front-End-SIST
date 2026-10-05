@@ -47,6 +47,7 @@ export function parseTicketFilters(params: SearchParams): TicketFilters {
     categoryId: validUuid(first(params.categoryId)),
     subcategoryId: validUuid(first(params.subcategoryId)),
     assignment: assignment === "mine" || assignment === "unassigned" || assignment === "assigned" ? assignment : undefined,
+    assignedTo: validUuid(first(params.assignedTo)),
     supportArea: supportAreas.find((area) => area === supportArea),
     createdFrom: validInstant(first(params.createdFrom)),
     createdTo: validInstant(first(params.createdTo)),

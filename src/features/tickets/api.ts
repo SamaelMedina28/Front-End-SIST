@@ -14,9 +14,13 @@ export type TicketFilters = NonNullable<paths["/api/v1/tickets"]["get"]["paramet
 export type TicketPageMeta = components["schemas"]["PaginatedTicketsResponse"]["meta"];
 export type UserDashboard = components["schemas"]["UserDashboardResponse"]["data"];
 export type SupportDashboard = components["schemas"]["SupportDashboardResponse"]["data"];
+export type AdminDashboard = components["schemas"]["AdminDashboardResponse"]["data"];
 export type SupportArea = components["schemas"]["Category"]["supportArea"];
 export type TicketStatusInput = components["schemas"]["TicketStatusInput"];
 export type TicketStatus = TicketStatusInput["status"];
+export type TicketPriority = components["schemas"]["TicketPriorityInput"]["priority"];
+export type TicketPriorityInput = components["schemas"]["TicketPriorityInput"];
+export type AdminAssigneeInput = components["schemas"]["AdminAssigneeInput"];
 type DashboardResponseData = UserDashboard
   | SupportDashboard
   | components["schemas"]["AdminDashboardResponse"]["data"];
@@ -33,6 +37,12 @@ export async function fetchSupportDashboard(signal?: AbortSignal): Promise<Suppo
   return data;
 }
 
+export async function fetchAdminDashboard(signal?: AbortSignal): Promise<AdminDashboard> {
+  const data = await requestApi<DashboardResponseData>(() => getBrowserClient().GET("/api/v1/dashboard", { signal }));
+  if (!data || !("technicianWorkload" in data) || !("stats" in data)) throw ApiError.unexpected();
+  return data;
+}
+
 export async function assignTicketToSelf(ticketId: string) {
   const data = await requestApi(() => getBrowserClient().POST("/api/v1/tickets/{id}/assign-self", {
     params: { path: { id: ticketId } },
@@ -46,6 +56,30 @@ export async function changeTicketStatus(ticketId: string, body: TicketStatusInp
   const data = await requestApi(() => getBrowserClient().PATCH("/api/v1/tickets/{id}/status", {
     params: { path: { id: ticketId } },
     headers: { "Idempotency-Key": idempotencyKey },
+    body,
+  }));
+  if (!data || typeof data.id !== "string") throw ApiError.unexpected();
+  return data;
+}
+
+export async function assignTicket(ticketId: string, body: AdminAssigneeInput) {
+  const data = await requestApi(() => getBrowserClient().PUT("/api/v1/tickets/{id}/assignee", {
+    params: { path: { id: ticketId } },
+    body,
+  }));
+  if (!data || typeof data.id !== "string") throw ApiError.unexpected();
+  return data;
+}
+
+export async function unassignTicket(ticketId: string) {
+  await requestApi(() => getBrowserClient().DELETE("/api/v1/tickets/{id}/assignee", {
+    params: { path: { id: ticketId } },
+  }));
+}
+
+export async function changeTicketPriority(ticketId: string, body: TicketPriorityInput) {
+  const data = await requestApi(() => getBrowserClient().PATCH("/api/v1/tickets/{id}/priority", {
+    params: { path: { id: ticketId } },
     body,
   }));
   if (!data || typeof data.id !== "string") throw ApiError.unexpected();

@@ -11,10 +11,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ApiError } from "@/lib/api/api-error";
 import { useCurrentUser } from "@/features/auth/queries/current-user";
-import { ModulePlaceholder } from "@/components/shared/module-placeholder";
 import { useUserDashboard } from "../queries/dashboard";
 import { TicketListItems } from "./ticket-list-items";
 import { SupportDashboardContent } from "./support-dashboard";
+import { AdminDashboardContent } from "./admin-dashboard";
 
 function DashboardSkeleton() {
   return <div className="grid gap-6" aria-label="Cargando tu panel" role="status">
@@ -52,5 +52,5 @@ export function DashboardExperience() {
   if (!user) return <DashboardSkeleton />;
   if (user.role === "USER") return <UserDashboardContent />;
   if (user.role === "SUPPORT" || user.role === "SUB_MANAGER") return <SupportDashboardContent />;
-  return <ModulePlaceholder title="Inicio" description="Esta vista se implementará en la siguiente etapa." />;
+  return <AdminDashboardContent />;
 }

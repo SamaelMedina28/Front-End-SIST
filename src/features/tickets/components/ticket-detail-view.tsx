@@ -17,6 +17,7 @@ import { useTicket, useTicketEvents } from "../queries/tickets";
 import { formatTicketDate } from "../utils/format-date";
 import { TicketTimeline } from "./ticket-timeline";
 import { SupportTicketActions } from "./support-ticket-actions";
+import { AdminTicketManagement } from "./admin-ticket-management";
 
 function DetailSkeleton() {
   return <div aria-label="Cargando solicitud" className="grid gap-5" role="status">
@@ -47,14 +48,14 @@ export function TicketDetailView({ ticketId }: { ticketId: string }) {
     const forbidden = ticketQuery.error instanceof ApiError && ticketQuery.error.status === 403;
     const error = ticketQuery.error instanceof Error ? ticketQuery.error : new Error("Ocurrió un error inesperado.");
     const title = notFound ? "No encontramos este ticket" : forbidden ? "Acceso restringido" : "Error al consultar el ticket";
-    return <div className="space-y-5"><PageHeader title={notFound ? "Solicitud no encontrada" : forbidden ? "Acceso restringido" : "No se pudo cargar la solicitud"} /><ErrorState title={title} message={error.message} requestId={ticketQuery.error instanceof ApiError ? ticketQuery.error.requestId : undefined} onRetry={() => { void ticketQuery.refetch(); }} action={<Link className={cn(buttonVariants({ variant: "outline", size: "sm" }))} href="/tickets">{user?.role === "SUPPORT" ? "Volver a la cola" : "Volver a mis tickets"}</Link>} /></div>;
+    return <div className="space-y-5"><PageHeader title={notFound ? "Solicitud no encontrada" : forbidden ? "Acceso restringido" : "No se pudo cargar la solicitud"} /><ErrorState title={title} message={error.message} requestId={ticketQuery.error instanceof ApiError ? ticketQuery.error.requestId : undefined} onRetry={() => { void ticketQuery.refetch(); }} action={<Link className={cn(buttonVariants({ variant: "outline", size: "sm" }))} href="/tickets">{user?.role === "SUPPORT" || user?.role === "SUB_MANAGER" ? "Volver a la cola" : user?.role === "ADMIN" ? "Volver a administración de tickets" : "Volver a mis tickets"}</Link>} /></div>;
   }
 
   const ticket = ticketQuery.data;
   const downloadUrl = safeExternalUrl(ticket.software?.downloadUrl);
   return <article className="grid min-w-0 gap-6">
     <PageHeader
-      breadcrumb={<Link className="inline-flex items-center gap-1 hover:text-foreground" href="/tickets"><ArrowLeft aria-hidden="true" size={14} /> {user?.role === "SUPPORT" ? "Cola de soporte" : "Mis tickets"}</Link>}
+      breadcrumb={<Link className="inline-flex items-center gap-1 hover:text-foreground" href="/tickets"><ArrowLeft aria-hidden="true" size={14} /> {user?.role === "SUPPORT" || user?.role === "SUB_MANAGER" ? "Cola de soporte" : user?.role === "ADMIN" ? "Administración de tickets" : "Mis tickets"}</Link>}
       title={ticket.title}
       description="Detalle de la solicitud de soporte técnico."
       actions={<div className="flex flex-wrap items-center gap-2">{(user?.role === "SUPPORT" || user?.role === "SUB_MANAGER" || user?.role === "ADMIN") && <Link className={cn(buttonVariants({ variant: "outline", size: "sm" }))} href={`/activity-log?ticketId=${encodeURIComponent(ticket.id)}`}>Ver bitácora</Link>}{user?.role === "SUB_MANAGER" && <Link className={cn(buttonVariants({ variant: "primary", size: "sm" }))} href={`/activity-log/new?ticketId=${encodeURIComponent(ticket.id)}`}>Registrar actividad</Link>}<span className="rounded-md border bg-muted px-3 py-2 font-mono text-sm font-semibold">{ticket.code}</span></div>}
@@ -64,6 +65,7 @@ export function TicketDetailView({ ticketId }: { ticketId: string }) {
       {isTicketPriority(ticket.priority) ? <PriorityBadge priority={ticket.priority} /> : <span className="rounded-md border px-2.5 py-1 text-xs">{ticket.priority}</span>}
     </section>
     {(user?.role === "SUPPORT" || user?.role === "SUB_MANAGER") && <SupportTicketActions onRefresh={() => { void ticketQuery.refetch(); void eventsQuery.refetch(); }} ticket={ticket} user={user} />}
+    {user?.role === "ADMIN" && <div className="grid min-w-0 gap-4"><AdminTicketManagement onRefresh={() => { void ticketQuery.refetch(); void eventsQuery.refetch(); }} ticket={ticket} user={user} /><SupportTicketActions onRefresh={() => { void ticketQuery.refetch(); void eventsQuery.refetch(); }} policy="admin" ticket={ticket} user={user} /></div>}
     <div className="grid min-w-0 gap-5 lg:grid-cols-2">
       <Card><CardHeader><CardTitle>Descripción</CardTitle></CardHeader><CardContent><p className="whitespace-pre-wrap break-words text-sm leading-6">{ticket.description}</p></CardContent></Card>
       <Card><CardHeader><CardTitle>Clasificación y ubicación</CardTitle></CardHeader><CardContent>
