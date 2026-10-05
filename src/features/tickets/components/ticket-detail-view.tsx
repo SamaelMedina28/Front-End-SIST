@@ -12,9 +12,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isTicketPriority, isTicketStatus, ticketStatusLabel } from "@/lib/constants/presentation";
 import { ApiError } from "@/lib/api/api-error";
 import { cn } from "@/lib/utils";
+import { useCurrentUser } from "@/features/auth/queries/current-user";
 import { useTicket, useTicketEvents } from "../queries/tickets";
 import { formatTicketDate } from "../utils/format-date";
 import { TicketTimeline } from "./ticket-timeline";
+import { SupportTicketActions } from "./support-ticket-actions";
 
 function DetailSkeleton() {
   return <div aria-label="Cargando solicitud" className="grid gap-5" role="status">
@@ -37,19 +39,22 @@ function safeExternalUrl(value: string | undefined) {
 export function TicketDetailView({ ticketId }: { ticketId: string }) {
   const ticketQuery = useTicket(ticketId);
   const eventsQuery = useTicketEvents(ticketId, ticketQuery.isSuccess);
+  const { data: user } = useCurrentUser();
 
   if (ticketQuery.isPending) return <DetailSkeleton />;
   if (ticketQuery.isError) {
     const notFound = ticketQuery.error instanceof ApiError && ticketQuery.error.status === 404;
+    const forbidden = ticketQuery.error instanceof ApiError && ticketQuery.error.status === 403;
     const error = ticketQuery.error instanceof Error ? ticketQuery.error : new Error("Ocurrió un error inesperado.");
-    return <div className="space-y-5"><PageHeader title={notFound ? "Solicitud no encontrada" : "No se pudo cargar la solicitud"} /><ErrorState title={notFound ? "No encontramos este ticket" : "Error al consultar el ticket"} message={error.message} requestId={ticketQuery.error instanceof ApiError ? ticketQuery.error.requestId : undefined} onRetry={() => { void ticketQuery.refetch(); }} action={<Link className={cn(buttonVariants({ variant: "outline", size: "sm" }))} href="/tickets">Volver a mis tickets</Link>} /></div>;
+    const title = notFound ? "No encontramos este ticket" : forbidden ? "Acceso restringido" : "Error al consultar el ticket";
+    return <div className="space-y-5"><PageHeader title={notFound ? "Solicitud no encontrada" : forbidden ? "Acceso restringido" : "No se pudo cargar la solicitud"} /><ErrorState title={title} message={error.message} requestId={ticketQuery.error instanceof ApiError ? ticketQuery.error.requestId : undefined} onRetry={() => { void ticketQuery.refetch(); }} action={<Link className={cn(buttonVariants({ variant: "outline", size: "sm" }))} href="/tickets">{user?.role === "SUPPORT" ? "Volver a la cola" : "Volver a mis tickets"}</Link>} /></div>;
   }
 
   const ticket = ticketQuery.data;
   const downloadUrl = safeExternalUrl(ticket.software?.downloadUrl);
   return <article className="grid min-w-0 gap-6">
     <PageHeader
-      breadcrumb={<Link className="inline-flex items-center gap-1 hover:text-foreground" href="/tickets"><ArrowLeft aria-hidden="true" size={14} /> Mis tickets</Link>}
+      breadcrumb={<Link className="inline-flex items-center gap-1 hover:text-foreground" href="/tickets"><ArrowLeft aria-hidden="true" size={14} /> {user?.role === "SUPPORT" ? "Cola de soporte" : "Mis tickets"}</Link>}
       title={ticket.title}
       description="Detalle de la solicitud de soporte técnico."
       actions={<span className="rounded-md border bg-muted px-3 py-2 font-mono text-sm font-semibold">{ticket.code}</span>}
@@ -58,6 +63,7 @@ export function TicketDetailView({ ticketId }: { ticketId: string }) {
       {isTicketStatus(ticket.status) ? <StatusBadge status={ticket.status} /> : <span className="rounded-md border px-2.5 py-1 text-xs">{ticketStatusLabel(ticket.status)}</span>}
       {isTicketPriority(ticket.priority) ? <PriorityBadge priority={ticket.priority} /> : <span className="rounded-md border px-2.5 py-1 text-xs">{ticket.priority}</span>}
     </section>
+    {user?.role === "SUPPORT" && <SupportTicketActions onRefresh={() => { void ticketQuery.refetch(); void eventsQuery.refetch(); }} ticket={ticket} user={user} />}
     <div className="grid min-w-0 gap-5 lg:grid-cols-2">
       <Card><CardHeader><CardTitle>Descripción</CardTitle></CardHeader><CardContent><p className="whitespace-pre-wrap break-words text-sm leading-6">{ticket.description}</p></CardContent></Card>
       <Card><CardHeader><CardTitle>Clasificación y ubicación</CardTitle></CardHeader><CardContent>
