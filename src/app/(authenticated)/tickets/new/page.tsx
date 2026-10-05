@@ -1,5 +1,5 @@
-import { ModulePlaceholder } from "@/components/shared/module-placeholder";
+import { CreateTicketPageView } from "@/features/tickets/components/create-ticket-form";
 
 export default function NewTicketPage() {
-  return <ModulePlaceholder title="Nuevo ticket" description="Registro de una nueva solicitud de soporte técnico." />;
+  return <CreateTicketPageView />;
 }

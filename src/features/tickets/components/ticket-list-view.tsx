@@ -1,0 +1,114 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+
+import { EmptyState } from "@/components/shared/empty-state";
+import { ErrorState } from "@/components/shared/error-state";
+import { ModulePlaceholder } from "@/components/shared/module-placeholder";
+import { PageHeader } from "@/components/shared/page-header";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { ticketPriorityLabels, ticketStatusLabels } from "@/lib/constants/presentation";
+import { ApiError } from "@/lib/api/api-error";
+import type { Role } from "@/types/api";
+import { cn } from "@/lib/utils";
+import { useCurrentUser } from "@/features/auth/queries/current-user";
+import type { TicketFilters } from "../api";
+import { useTicketFormCatalog } from "../queries/ticket-form";
+import { useTickets } from "../queries/tickets";
+import { ticketFilterEntries, parseTicketFilters } from "../utils/ticket-filters";
+import { TicketListItems } from "./ticket-list-items";
+
+function TicketListSkeleton() {
+  return <div aria-label="Cargando tickets" className="grid gap-3" role="status">{[0, 1, 2, 3].map((item) => <div className="h-24 animate-pulse rounded-xl bg-muted" key={item} />)}</div>;
+}
+
+function Filters({ filters }: { filters: TicketFilters }) {
+  const router = useRouter();
+  const catalog = useTicketFormCatalog(true);
+  const [categoryId, setCategoryId] = useState(filters.categoryId ?? "");
+  const [subcategoryId, setSubcategoryId] = useState(filters.subcategoryId ?? "");
+  const selectedCategory = catalog.data?.categories.find((category) => category.id === categoryId);
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const parsed = parseTicketFilters({
+      search: String(form.get("search") ?? ""),
+      status: String(form.get("status") ?? ""),
+      priority: String(form.get("priority") ?? ""),
+      categoryId,
+      subcategoryId,
+      sort: String(form.get("sort") ?? ""),
+      order: String(form.get("order") ?? ""),
+      pageSize: filters.pageSize === undefined ? undefined : String(filters.pageSize),
+      createdFrom: filters.createdFrom,
+      createdTo: filters.createdTo,
+    });
+    const query = ticketFilterEntries(parsed);
+    router.push(query ? `/tickets?${query}` : "/tickets");
+  }
+
+  return <form className="grid gap-3 rounded-xl border bg-surface p-4 sm:grid-cols-2 xl:grid-cols-4" onSubmit={submit}>
+    <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-search">Buscar por código o título</label><Input id="ticket-search" name="search" defaultValue={filters.search ?? ""} placeholder="Buscar tickets" /></div>
+    <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-status">Estado</label><Select defaultValue={filters.status ?? ""} id="ticket-status" name="status"><option value="">Todos</option>{Object.entries(ticketStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></div>
+    <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-priority">Prioridad</label><Select defaultValue={filters.priority ?? ""} id="ticket-priority" name="priority"><option value="">Todas</option>{Object.entries(ticketPriorityLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></div>
+    <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-category">Categoría</label><Select disabled={catalog.isPending || catalog.isError} id="ticket-category" value={categoryId} onChange={(event) => { setCategoryId(event.target.value); setSubcategoryId(""); }}><option value="">Todas</option>{catalog.data?.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</Select></div>
+    <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-subcategory">Subcategoría</label><Select disabled={!selectedCategory} id="ticket-subcategory" value={subcategoryId} onChange={(event) => setSubcategoryId(event.target.value)}><option value="">Todas</option>{selectedCategory?.subcategories.map((subcategory) => <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>)}</Select></div>
+    <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-sort">Ordenar por</label><Select defaultValue={filters.sort ?? ""} id="ticket-sort" name="sort"><option value="">Predeterminado</option><option value="createdAt">Fecha de creación</option><option value="updatedAt">Última actualización</option><option value="priority">Prioridad</option><option value="status">Estado</option><option value="code">Código</option></Select></div>
+    <div className="grid gap-1.5"><label className="text-xs font-medium" htmlFor="ticket-order">Dirección</label><Select defaultValue={filters.order ?? ""} id="ticket-order" name="order"><option value="">Predeterminada</option><option value="desc">Descendente</option><option value="asc">Ascendente</option></Select></div>
+    {filters.createdFrom && <input name="createdFrom" type="hidden" value={filters.createdFrom} />}
+    {filters.createdTo && <input name="createdTo" type="hidden" value={filters.createdTo} />}
+    <div className="flex items-end gap-2 xl:col-span-1"><Button className="w-full" type="submit" variant="secondary">Aplicar filtros</Button><Button className="shrink-0" onClick={() => router.push("/tickets")} type="button" variant="outline">Limpiar</Button></div>
+    {catalog.isError && <p className="text-xs text-muted-foreground sm:col-span-2 xl:col-span-4">No se pudieron cargar las categorías; puedes filtrar por los demás campos. {catalog.error instanceof Error ? catalog.error.message : "Error inesperado."}</p>}
+  </form>;
+}
+
+export function TicketListExperience({ filters, role }: { filters: TicketFilters; role: Role }) {
+  const router = useRouter();
+  const catalog = useTicketFormCatalog(role === "USER");
+  const hasSubcategoryFilter = !!filters.subcategoryId;
+  const catalogReady = catalog.isSuccess || catalog.isError;
+  const validSubcategory = catalog.data?.categories.some((category) =>
+    (!filters.categoryId || category.id === filters.categoryId)
+    && category.subcategories.some((subcategory) => subcategory.id === filters.subcategoryId),
+  );
+  const safeFilters = hasSubcategoryFilter && catalogReady && !validSubcategory
+    ? { ...filters, subcategoryId: undefined }
+    : filters;
+  const query = useTickets(safeFilters, role === "USER" && (!hasSubcategoryFilter || catalogReady));
+  if (role !== "USER") return <ModulePlaceholder title="Tickets" description="Esta vista se implementará en la siguiente etapa." />;
+  if (hasSubcategoryFilter && !catalogReady) return <TicketListSkeleton />;
+  if (query.isPending) return <TicketListSkeleton />;
+  if (query.isError) return <ErrorState title="No se pudieron cargar tus tickets" message={query.error instanceof Error ? query.error.message : "Ocurrió un error inesperado."} requestId={query.error instanceof ApiError ? query.error.requestId : undefined} onRetry={() => { void query.refetch(); }} />;
+  if (!query.data) return <TicketListSkeleton />;
+
+  const page = query.data;
+  const hasFilters = !!(safeFilters.search || safeFilters.status || safeFilters.priority || safeFilters.categoryId || safeFilters.subcategoryId || safeFilters.createdFrom || safeFilters.createdTo);
+  const queryString = (nextPage: number) => {
+    const search = ticketFilterEntries({ ...filters, page: nextPage });
+    return `/tickets?${search}`;
+  };
+  return <section className="grid min-w-0 gap-6">
+    <PageHeader title="Mis tickets" description="Consulta el estado y seguimiento de tus solicitudes." actions={<Link className={cn(buttonVariants({ variant: "primary" }))} href="/tickets/new"><Plus aria-hidden="true" size={17} />Nuevo ticket</Link>} />
+    <Filters filters={safeFilters} />
+    {page.tickets.length === 0 ? <EmptyState title={hasFilters ? "No hay tickets que coincidan con estos filtros." : "Aún no tienes solicitudes de soporte."} description="Puedes crear una solicitud para recibir asistencia técnica." action={<Link className={cn(buttonVariants({ variant: "primary", size: "sm" }))} href="/tickets/new"><Plus aria-hidden="true" size={16} />Crear ticket</Link>} />
+      : <>
+            <TicketListItems tickets={page.tickets} />
+            <nav aria-label="Paginación de tickets" className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+              <p className="text-sm text-muted-foreground">Página {page.meta.page} de {page.meta.totalPages} · {page.meta.total} tickets</p>
+              <div className="flex gap-2"><Button disabled={page.meta.page <= 1} onClick={() => router.push(queryString(page.meta.page - 1))} size="sm" variant="outline"><ChevronLeft aria-hidden="true" size={16} />Anterior</Button><Button disabled={page.meta.page >= page.meta.totalPages} onClick={() => router.push(queryString(page.meta.page + 1))} size="sm" variant="outline">Siguiente<ChevronRight aria-hidden="true" size={16} /></Button></div>
+            </nav>
+      </>}
+  </section>;
+}
+
+export function TicketListView({ filters }: { filters: TicketFilters }) {
+  const { data: user } = useCurrentUser();
+  if (!user) return <TicketListSkeleton />;
+  return <TicketListExperience filters={filters} role={user.role} />;
+}

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ApiError, apiErrorFromPayload } from "../src/lib/api/api-error";
 import { shouldRetryQuery } from "../src/lib/api/query-retry";
-import { requestApi } from "../src/lib/api/request";
+import { requestApi, requestApiEnvelope } from "../src/lib/api/request";
 import { unwrapResponse, type ApiFetchResult } from "../src/lib/api/unwrap-response";
 import { getPublicEnvironment } from "../src/lib/env";
 
@@ -65,6 +65,18 @@ describe("API response normalization", () => {
     };
 
     expect(unwrapResponse(result)).toEqual({ id: "ticket-1" });
+  });
+
+  it("retains generated pagination metadata when a caller needs it", async () => {
+    const result: ApiFetchResult<string[], { page: number; pageSize: number; total: number; totalPages: number }> = {
+      data: { success: true, data: ["TK-1"], meta: { page: 2, pageSize: 5, total: 6, totalPages: 2 } },
+      response: response(200),
+    };
+    await expect(requestApiEnvelope(async () => result)).resolves.toEqual({
+      success: true,
+      data: ["TK-1"],
+      meta: { page: 2, pageSize: 5, total: 6, totalPages: 2 },
+    });
   });
 
   it("accepts an empty 204 response", () => {

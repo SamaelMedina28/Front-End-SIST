@@ -30,6 +30,18 @@ export const ticketPriorityTones = {
   HIGH: "danger",
 } satisfies Record<TicketPriority, SemanticTone>;
 
+export function isTicketStatus(value: string): value is TicketStatus {
+  return Object.keys(ticketStatusLabels).some((status) => status === value);
+}
+
+export function isTicketPriority(value: string): value is TicketPriority {
+  return Object.keys(ticketPriorityLabels).some((priority) => priority === value);
+}
+
+export function ticketStatusLabel(value: string) {
+  return isTicketStatus(value) ? ticketStatusLabels[value] : value;
+}
+
 export const roleLabels = {
   USER: "Usuario",
   SUPPORT: "Soporte",

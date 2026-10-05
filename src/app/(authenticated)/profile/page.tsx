@@ -1,5 +1,5 @@
-import { ModulePlaceholder } from "@/components/shared/module-placeholder";
+import { ProfilePageView } from "@/features/profile/components/profile-page-view";
 
 export default function ProfilePage() {
-  return <ModulePlaceholder title="Mi perfil" description="Consulta y administración de tu perfil institucional." />;
+  return <ProfilePageView />;
 }
