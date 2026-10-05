@@ -42,8 +42,8 @@ export function SupportMemberForm({ member }: { member?: SupportMember }) {
         const body = toSupportMemberPatch(values, {
           fullName: !!dirty.fullName,
           role: !!dirty.role,
-          supportAreas: !!dirty.supportAreas?.some(Boolean),
-          skills: !!dirty.skills?.some(Boolean),
+          supportAreas: values.supportAreas.length !== member.supportAreas.length || values.supportAreas.some((area, index) => area !== member.supportAreas[index]),
+          skills: values.skills.length !== member.skills.length || values.skills.some((skill, index) => skill !== member.skills[index]),
           isActive: !!dirty.isActive,
         });
         if (!Object.keys(body).length) { router.push(`/admin/support-members/${member.id}`); return; }

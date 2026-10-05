@@ -70,6 +70,7 @@ describe("ADMIN categories and subcategories", () => {
       currentSubcategories = [added]; return response(added, 201);
     });
     endpoint("PATCH", `/api/v1/subcategories/${subcategoryId}`, async (request) => { subcategoryPatch = await request.json(); currentSubcategories = currentSubcategories.map((item) => ({ ...item, ...subcategoryPatch as Partial<Category["subcategories"][number]> })); return response(currentSubcategories[0]); });
+    endpoint("DELETE", `/api/v1/subcategories/${subcategoryId}`, () => { currentSubcategories = []; return new Response(null, { status: 204 }); });
     endpoint("DELETE", `/api/v1/categories/${categoryId}`, () => { active = false; return new Response(null, { status: 204 }); });
     const user = userEvent.setup(); renderWithClient(<><CatalogProbe /><CategoriesAdmin /></>);
     expect(await screen.findByText("No hay categorías registradas.")).toBeTruthy();
@@ -81,8 +82,8 @@ describe("ADMIN categories and subcategories", () => {
     await user.click(screen.getByRole("checkbox", { name: /Requiere información de software/ }));
     await user.click(screen.getByRole("button", { name: "Guardar" }));
     await waitFor(() => expect(categoryBody).toEqual({ code: "NEW_HARDWARE", name: "Equipo audiovisual", supportArea: "NETWORKS", defaultPriority: null, requiresSoftwareDetails: true }));
-    expect(await screen.findByText("Soporte técnico")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Editar categoría Soporte técnico" }));
+    expect(await screen.findByText("Equipo audiovisual")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Editar categoría Equipo audiovisual" }));
     const categoryName = screen.getByLabelText("Nombre", { selector: "input" });
     await user.clear(categoryName); await user.type(categoryName, "Ayuda audiovisual");
     await user.click(screen.getByRole("button", { name: "Guardar" }));
@@ -105,7 +106,11 @@ describe("ADMIN categories and subcategories", () => {
     await user.click(screen.getByRole("button", { name: "Desactivar categoría" }));
     await waitFor(() => expect(active).toBe(false));
     expect(await screen.findByText("Inactiva")).toBeTruthy();
-    expect(screen.getByText("Falla de proyector")).toBeTruthy();
+    expect(screen.getByText("Falla audiovisual")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Desactivar subcategoría Falla audiovisual" }));
+    await user.click(screen.getByRole("button", { name: "Desactivar subcategoría" }));
+    await waitFor(() => expect(requests.some((request) => request.method === "DELETE" && new URL(request.url).pathname.endsWith(subcategoryId))).toBe(true));
+    await waitFor(() => expect(screen.queryByText("Falla audiovisual")).toBeNull());
     expect(catalogCalls).toBeGreaterThanOrEqual(2);
     expect(requests.some((request) => request.method === "DELETE" && new URL(request.url).pathname.endsWith(categoryId))).toBe(true);
   });
@@ -130,6 +135,36 @@ describe("ADMIN support member screens", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith(`/admin/support-members/${memberId}`));
     expect(body).toEqual({ fullName: "Técnica Ejemplo", email: "tecnica@example.edu", institutionalId: "A-123", communityType: "ADMINISTRATIVE", role: "SUB_MANAGER", supportAreas: ["HARDWARE"], skills: ["Mantenimiento"] });
     expect(body).not.toHaveProperty("password");
+  });
+
+  it("retains preprovision fields and shows the real duplicate-account conflict", async () => {
+    endpoint("POST", "/api/v1/support-members", () => new Response(JSON.stringify({ success: false, error: { code: "SUPPORT_MEMBER_EMAIL_EXISTS", message: "El correo ya pertenece a una cuenta." }, requestId: "duplicate-support-request" }), { status: 409, headers: { "content-type": "application/json" } }));
+    const user = userEvent.setup(); renderWithClient(<SupportMemberForm />);
+    await user.type(screen.getByLabelText("Nombre completo"), "Técnica Existente");
+    await user.type(screen.getByLabelText("Correo institucional"), "tecnica@example.edu");
+    await user.type(screen.getByLabelText("Matrícula o número institucional"), "A-123");
+    await user.selectOptions(screen.getByLabelText("Tipo de comunidad"), "TEACHER");
+    await user.click(screen.getByRole("button", { name: "Preprovisionar cuenta" }));
+    expect(await screen.findByText("El correo o identificador institucional ya está registrado")).toBeTruthy();
+    expect(screen.getByText("Solicitud: duplicate-support-request")).toBeTruthy();
+    expect(screen.getByDisplayValue("Técnica Existente")).toBeTruthy();
+  });
+
+  it("edits only dirty support-member fields and leaves email/community identity read-only", async () => {
+    let body: unknown;
+    const detail = { ...member, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-02T00:00:00.000Z" };
+    endpoint("PATCH", `/api/v1/support-members/${memberId}`, async (request) => { body = await request.json(); return response({ ...detail, role: "SUB_MANAGER" }); });
+    const user = userEvent.setup(); renderWithClient(<SupportMemberForm member={detail} />);
+    expect((screen.getByLabelText("Correo institucional") as HTMLInputElement).readOnly).toBe(true);
+    expect((screen.getByLabelText("Matrícula o número institucional") as HTMLInputElement).readOnly).toBe(true);
+    expect((screen.getByLabelText("Tipo de comunidad") as HTMLSelectElement).disabled).toBe(true);
+    await user.selectOptions(screen.getByLabelText("Rol del sistema"), "SUB_MANAGER");
+    await user.click(screen.getByLabelText("Hardware"));
+    await user.click(screen.getByLabelText("Software"));
+    await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    await waitFor(() => expect(body).toEqual({ role: "SUB_MANAGER", supportAreas: [] }));
+    expect(body).not.toHaveProperty("email");
+    expect(push).toHaveBeenCalledWith(`/admin/support-members/${memberId}`);
   });
 
   it("passes server filters and preserves them when moving through backend pagination", async () => {
