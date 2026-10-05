@@ -22,9 +22,11 @@ Los componentes consumen tokens semánticos definidos en
 | Superficie | `--surface` | Cards, formularios y navegación |
 | Neutros | `--background`, `--muted`, `--border` | Jerarquía y separación |
 
-El verde UABC es la identidad primaria. El ocre y el azul institucional se
-reservan para acento e información. Se mantiene una base amplia de blancos y
-grises para evitar saturación.
+El verde UABC es la identidad primaria y ahora domina la navegación lateral y
+la barra superior; el ocre institucional destaca la navegación activa y el
+borde de la barra. Fondo y superficies usan matices verde/crema para bajar el
+blanco puro sin perder contraste ni legibilidad. El azul se reserva para
+información y foco.
 
 ## Tipografía
 
