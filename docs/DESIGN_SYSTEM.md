@@ -71,6 +71,10 @@ arbitrariamente. `AppLogo` mantiene un placeholder textual temporal.
 
 ## Decisiones y límites del paso 1
 
+- El script `build` usa `next build --webpack`: el build Webpack pasa con
+  TypeScript estricto, mientras que Turbopack falla en este entorno restringido
+  al intentar crear un proceso que enlace un puerto durante el procesamiento de
+  CSS. Esta elección no desactiva type checking ni lint.
 - No hay OAuth, RBAC, `auth/me`, cliente HTTP ni endpoints consumidos.
 - No hay datos ficticios permanentes ni mock APIs; los ejemplos de la página
   showcase son exclusivamente visuales.
