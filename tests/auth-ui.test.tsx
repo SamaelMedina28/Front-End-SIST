@@ -5,7 +5,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { AuthGuard, SessionGate } from "../src/features/auth/components/session-gate";
+import { AuthGuard, RoleGuard, SessionGate } from "../src/features/auth/components/session-gate";
 import { CompleteProfileForm } from "../src/features/auth/components/complete-profile-form";
 import { GoogleLoginButton } from "../src/features/auth/components/google-login-button";
 import { currentUserKey } from "../src/features/auth/queries/current-user";
@@ -13,8 +13,8 @@ import { Topbar } from "../src/components/layout/topbar";
 import { UserAvatar } from "../src/features/auth/components/user-avatar";
 import { errorResponse, jsonResponse, testUser } from "./auth-fixture";
 
-const { replace } = vi.hoisted(() => ({ replace: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }), usePathname: () => "/dashboard" }));
+const { replace, pathname } = vi.hoisted(() => ({ replace: vi.fn(), pathname: { current: "/dashboard" } }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }), usePathname: () => pathname.current }));
 const fetchMock = vi.fn<typeof fetch>();
 // Node's Request requires its own AbortSignal, rather than JSDOM's realm.
 const NativeAbortController = transferableAbortController().constructor;
@@ -29,6 +29,7 @@ function renderAuth(children: ReactNode) {
 
 beforeEach(() => {
   replace.mockReset();
+  pathname.current = "/dashboard";
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   vi.stubGlobal("AbortController", NativeAbortController);
@@ -114,6 +115,49 @@ describe("session route decisions", () => {
     fetchMock.mockImplementation(async () => errorResponse(401));
     renderAuth(<SessionGate mode="login"><GoogleLoginButton /></SessionGate>);
     expect(await screen.findByRole("button", { name: "Continuar con Google" })).toBeTruthy();
+  });
+});
+
+describe("role guard", () => {
+  it("renders an allowed route inside the session shell", async () => {
+    pathname.current = "/inventory";
+    fetchMock.mockImplementation(async () => jsonResponse({ success: true, data: { ...testUser, role: "SUB_MANAGER" } }));
+    renderAuth(<RoleGuard><p>Inventario protegido</p></RoleGuard>);
+    expect(await screen.findByText("Inventario protegido")).toBeTruthy();
+    expect(replace).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("redirects a role-denied direct URL and never renders its content", async () => {
+    pathname.current = "/admin/categories";
+    fetchMock.mockImplementation(async () => jsonResponse({ success: true, data: testUser }));
+    renderAuth(<RoleGuard><p>Contenido solo administrador</p></RoleGuard>);
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/forbidden"));
+    expect(screen.queryByText("Contenido solo administrador")).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("continues to send unauthenticated direct URLs to login", async () => {
+    pathname.current = "/inventory";
+    fetchMock.mockImplementation(async () => errorResponse(401));
+    renderAuth(<RoleGuard><p>Inventario protegido</p></RoleGuard>);
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
+    expect(screen.queryByText("Inventario protegido")).toBeNull();
+  });
+
+  it("waits for this visit's /me before applying a cached role", async () => {
+    pathname.current = "/inventory";
+    let finish: (response: Response) => void = () => {};
+    fetchMock.mockImplementation(() => new Promise<Response>((resolve) => { finish = resolve; }));
+    const client = new QueryClient({ defaultOptions: { queries: { retryDelay: 0 } } });
+    clients.push(client);
+    client.setQueryData(currentUserKey, testUser);
+    render(<QueryClientProvider client={client}><RoleGuard><p>Inventario protegido</p></RoleGuard></QueryClientProvider>);
+    expect(screen.getByRole("status", { name: "Verificando sesión" })).toBeTruthy();
+    expect(replace).not.toHaveBeenCalled();
+    await act(async () => { finish(jsonResponse({ success: true, data: { ...testUser, role: "SUB_MANAGER" } })); });
+    expect(await screen.findByText("Inventario protegido")).toBeTruthy();
+    expect(replace).not.toHaveBeenCalled();
   });
 });
 

@@ -1,8 +1,9 @@
-# Autenticación — Paso 3
+# Autenticación y RBAC visual — Pasos 3 y 4
 
-RBAC visual se implementará en el Paso 4. Este paso entrega sesión, onboarding,
-logout y protección básica de rutas. `/dashboard` es una confirmación temporal
-de sesión; no contiene métricas ni datos de negocio.
+Este documento cubre sesión, onboarding, logout y protección UX por rol.
+`/dashboard` sigue siendo una confirmación temporal de sesión; no contiene
+métricas ni datos de negocio. Los módulos añadidos en el Paso 4 son
+placeholders sin datos de ejemplo.
 
 ## Autoridad y cookies
 
@@ -30,9 +31,42 @@ navegador controla la presentación; Express mantiene la seguridad de sus APIs.
 | `/auth/complete-profile` | LoadingState | Reemplaza por `/dashboard` | Formulario | ErrorState y reintento |
 | Grupo `(authenticated)` | PageSkeleton | AppShell y contenido | Reemplaza por `/login` | ErrorState y reintento |
 
-`/` redirige a `/login`. `/forbidden` prepara el mensaje de acceso restringido,
-sin reglas de roles. `/design-system` sigue siendo un catálogo público de
+`/` redirige a `/login`. `/forbidden` presenta el mensaje de acceso restringido.
+`/design-system` sigue siendo un catálogo público de
 desarrollo y no contiene datos de sesión.
+
+## Roles y permisos de interfaz
+
+La configuración única de navegación y rutas está en
+`src/components/layout/navigation.ts`. El tipo `Role` se deriva del schema
+OpenAPI generado `User['role']`; no se duplica el enum. La interfaz consulta
+exclusivamente ese campo, no `communityType`, `supportAreas` ni claims del
+navegador.
+
+| Rol | Tickets | Nuevo ticket | Bitácora | Inventario | Reportes | Administración | Perfil |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| USER | Sí (Mis tickets) | Sí | No | No | No | No | Sí |
+| SUPPORT | Sí | No | Sí | No | No | No | Sí |
+| SUB_MANAGER | Sí | No | Sí | Sí | No | No | Sí |
+| ADMIN | Sí | No | Sí | Sí | Sí | Categorías y personal | Sí |
+
+Todos los roles autenticados conservan Inicio. La protección de URL usa
+coincidencia por segmento y la regla más específica prevalece; por ejemplo,
+`/tickets/new` es USER y `/tickets/{id}` usa la política de Tickets. Los
+accesos directos no autorizados se redirigen a `/forbidden` sin renderizar el
+contenido protegido. Las rutas no declaradas no se autorizan por esta tabla.
+Desktop y móvil consumen la misma lista filtrada. El elemento activo considera
+rutas anidadas sin confundir prefijos parciales.
+
+El `RoleGuard` resuelve la política de la ruta y se compone con `SessionGate`:
+la sesión y el rol provienen de una única query `/auth/me`; no existe selector
+de rol ni estado local alternativo. Un cambio de rol se aplica cuando `/me` se
+revalida al montar o recuperar foco.
+
+Esto es protección de experiencia de usuario, no una frontera de seguridad.
+Express debe autenticar y autorizar cada endpoint. Ocultar un enlace o
+redirigir una URL nunca concede ni sustituye permisos del backend; los 401,
+403 y errores del API deben seguir manejándose por cada feature.
 
 Un 401 de `/me` en onboarding es normal: todavía puede existir únicamente la
 cookie temporal. El POST de onboarding es quien valida esa cookie. No existe
@@ -118,15 +152,15 @@ Express elimina las cookies. La caché nunca se persiste entre cargas del navega
 
 ## AppShell y avatar
 
-AuthGuard proporciona el usuario de la query al AppShell. La Topbar muestra
+RoleGuard/SessionGate proporciona el usuario de la query al AppShell. La Topbar muestra
 nombre truncable, rol traducido, avatar e iniciales como fallback. El logout es
 un botón accesible: el proyecto aún no tiene un patrón DropdownMenu.
 
 El avatar usa un `img` HTTPS, sin credenciales en la URL y con
 `referrerPolicy="no-referrer"`; si falla se muestran iniciales. La excepción
 local de ESLint evita introducir un proxy de imágenes o dominios remotos
-genéricos de Next Image. El Sidebar conserva navegación temporal sin filtrar
-roles y ya no contiene datos personales ficticios.
+genéricos de Next Image. Sidebar y navegación móvil filtran enlaces con el rol
+actual y consumen la misma configuración; no contienen datos ficticios.
 
 ## Prueba manual con cuenta institucional
 
@@ -152,6 +186,6 @@ AppShell real y una fixture de test; ambos archivos temporales se retiraron.
 No se creó un usuario en Express ni una sesión simulada dentro de la app.
 
 La prueba OAuth institucional completa queda pendiente de ejecución manual.
-El siguiente paso de desarrollo es RBAC visual (Paso 4), manteniendo Express
-como autoridad. Los enlaces de módulos siguen siendo temporales y el dashboard
-seguirá siendo un placeholder hasta su etapa correspondiente.
+El Paso 4 entrega rutas protegidas y placeholders para Tickets, Nuevo ticket,
+Bitácora, Inventario, Reportes, Categorías, Personal de soporte y Perfil. Las
+features de negocio y el dashboard funcional quedan para etapas posteriores.

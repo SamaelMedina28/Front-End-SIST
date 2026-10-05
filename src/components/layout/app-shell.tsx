@@ -12,9 +12,9 @@ export function AppShell({ children, user }: { children: ReactNode; user?: Curre
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   return (
     <div className="min-h-screen bg-background">
-      <div className="hidden md:fixed md:inset-y-0 md:flex"><Sidebar /></div>
+      <div className="hidden md:fixed md:inset-y-0 md:flex"><Sidebar role={user?.role} /></div>
       <div className="md:pl-64"><Topbar user={user} onMenuClick={() => setMobileNavigationOpen(true)} /><MainContent>{children}</MainContent></div>
-      <MobileNavigation onOpenChange={setMobileNavigationOpen} open={mobileNavigationOpen} />
+      <MobileNavigation onOpenChange={setMobileNavigationOpen} open={mobileNavigationOpen} role={user?.role} />
     </div>
   );
 }
