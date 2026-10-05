@@ -280,7 +280,7 @@ describe("SUPPORT ticket actions", () => {
     renderWithClient(<SupportTicketActions onRefresh={onRefresh} ticket={assignedToSelf} user={supportUser} />);
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Marcar en revisión" }));
-    expect(screen.getByRole("button", { name: "Actualizando estado…" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.getAllByRole("button", { name: "Actualizando estado…" }).every((button) => button.hasAttribute("disabled"))).toBe(true);
     resolveStatus?.(errorResponse(409, "INVALID_TRANSITION"));
     expect((await screen.findByRole("alert")).textContent).toContain("Mensaje del servidor");
     expect(requests.filter((request) => request.method === "PATCH")).toHaveLength(1);
