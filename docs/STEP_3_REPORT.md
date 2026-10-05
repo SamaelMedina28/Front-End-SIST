@@ -141,7 +141,8 @@ usan respuestas aisladas y no crean usuarios en el backend.
   img sin referrer, con fallback de iniciales y excepción de lint documentada.
 - La validación OAuth real sigue pendiente; también depende de CORS, cookies,
   Google y FRONTEND_URL del backend. Ninguna de esas configuraciones se alteró.
-- `/design-system` y los enlaces de módulos son temporales; no contienen datos
-  privados. No hay navegación por rol, edición de perfil ni dashboard de negocio.
+- En el Paso 3, `/design-system` y los enlaces de módulos eran temporales; el
+  showcase `/design-system` se retiró en la auditoría final. No contienen datos
+  privados. En esa etapa no había navegación por rol ni dashboard de negocio.
 - El próximo paso recomendado es ejecutar la prueba manual institucional y,
   después, implementar únicamente el RBAC visual del Paso 4.

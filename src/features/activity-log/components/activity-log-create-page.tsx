@@ -11,5 +11,5 @@ import { ActivityLogCreateBlock } from "./activity-log-form";
 export function ActivityLogCreatePage({ ticketId }: { ticketId?: string }) {
   const { data: user } = useCurrentUser();
   if (user?.role !== "SUB_MANAGER") return <section className="grid gap-5"><PageHeader title="Registrar actividad" /><p className="text-sm">La creación de bitácora está disponible únicamente para SUB_MANAGER.</p><Link className={cn(buttonVariants({ variant: "outline" }))} href="/activity-log">Volver a bitácora</Link></section>;
-  return <section className="grid gap-5"><PageHeader title="Registrar actividad" description="Vincula la actividad con un ticket existente." /><ActivityLogCreateBlock ticketId={ticketId} /></section>;
+  return <section className="grid gap-5"><PageHeader title="Registrar actividad" description="Vincula la actividad con un ticket existente." /><ActivityLogCreateBlock key={ticketId ?? "no-ticket"} ticketId={ticketId} /></section>;
 }

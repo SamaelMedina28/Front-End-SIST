@@ -8,6 +8,8 @@ export type ActivityLogDetail = components["schemas"]["ActivityLogDetail"];
 export type ActivityLogRevision = components["schemas"]["ActivityLogRevision"];
 export type ActivityLogStatus = components["schemas"]["ActivityLogListItem"]["status"];
 export type ActivityLogPatchRequest = components["schemas"]["ActivityLogPatchRequest"];
+export type ActivityLogCreateRequest = components["schemas"]["ActivityLogCreateRequest"];
+export type ActivityLogParticipantCandidate = components["schemas"]["ActivityLogParticipantCandidate"];
 export type ActivityLogFilters = NonNullable<paths["/api/v1/activity-log"]["get"]["parameters"]["query"]>;
 export type ActivityLogPageMeta = components["schemas"]["PaginatedActivityLogsResponse"]["meta"];
 
@@ -32,6 +34,18 @@ export async function fetchActivityLog(id: string, signal?: AbortSignal): Promis
 export async function fetchActivityLogHistory(id: string, signal?: AbortSignal): Promise<ActivityLogRevision[]> {
   const data = await requestApi(() => getBrowserClient().GET("/api/v1/activity-log/{id}/history", { params: { path: { id } }, signal }));
   if (!Array.isArray(data)) throw ApiError.unexpected();
+  return data;
+}
+
+export async function fetchActivityLogParticipants(ticketId: string, signal?: AbortSignal): Promise<ActivityLogParticipantCandidate[]> {
+  const data = await requestApi(() => getBrowserClient().GET("/api/v1/catalog/activity-log-participants", { params: { query: { ticketId } }, signal }));
+  if (!Array.isArray(data) || data.some((candidate) => !candidate || typeof candidate.id !== "string" || typeof candidate.fullName !== "string")) throw ApiError.unexpected();
+  return data;
+}
+
+export async function createActivityLog(body: ActivityLogCreateRequest): Promise<ActivityLogDetail> {
+  const data = await requestApi(() => getBrowserClient().POST("/api/v1/activity-log", { body }));
+  if (!data || typeof data.id !== "string") throw ApiError.unexpected();
   return data;
 }
 

@@ -65,10 +65,11 @@ textuales de error.
 
 ## Logo
 
-No existe todavía un asset oficial en el repositorio. `AppLogo` muestra una
-marca textual “UABC”; no es el logotipo oficial. No redibujar ni sustituir por
-un archivo no autorizado. Integrar el asset oficial cuando la institución lo
-proporcione.
+`public/Logo-uabc.png` contiene el escudo institucional proporcionado en el
+workspace y `AppLogo` lo reutiliza como imagen decorativa; el nombre accesible
+del enlace identifica el sistema. No es una marca específica de FCQI. Mantener
+el archivo de origen y sustituirlo solo si la institución proporciona un asset
+FCQI autorizado.
 
 ## Decisiones y límites del paso 1
 

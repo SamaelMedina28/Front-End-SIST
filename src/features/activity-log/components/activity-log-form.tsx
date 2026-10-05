@@ -4,6 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { ErrorState } from "@/components/shared/error-state";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -12,8 +14,9 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/lib/api/api-error";
 import { tijuanaInputToIso, isoToTijuanaInput } from "../utils/date-time";
-import { useUpdateActivityLog } from "../mutations/activity-log";
-import type { ActivityLogDetail, ActivityLogPatchRequest, ActivityLogStatus } from "../api";
+import { useCreateActivityLog, useUpdateActivityLog } from "../mutations/activity-log";
+import type { ActivityLogCreateRequest, ActivityLogDetail, ActivityLogPatchRequest, ActivityLogStatus } from "../api";
+import { useActivityLogParticipants } from "../queries/activity-log";
 import { activityLogStatusLabels } from "../utils/presentation";
 
 const editSchema = z.object({
@@ -69,18 +72,44 @@ export function ActivityLogEditForm({ entry, onCancel, onSaved }: { entry: Activ
 }
 
 export function ActivityLogCreateBlock({ ticketId }: { ticketId?: string }) {
-  return <section aria-labelledby="activity-create-blocker" className="grid gap-5">
-    <div className="rounded-xl border border-warning/50 bg-warning/10 p-5" role="note">
-      <h2 className="font-semibold" id="activity-create-blocker">No es posible registrar una bitácora todavía</h2>
-      <p className="mt-2 text-sm leading-6">El backend exige <code>participantIds</code> para crear el registro, pero no ofrece un catálogo autorizado de participantes para SUB_MANAGER. Por seguridad, esta pantalla no solicita identidades por una vía no autorizada ni envía una lista vacía.</p>
-      {ticketId && <p className="mt-2 text-sm text-muted-foreground">Ticket seleccionado: <span className="font-mono">{ticketId}</span></p>}
-      <p className="mt-2 text-sm">La función podrá habilitarse cuando el backend publique un catálogo de participantes específico y autorizado.</p>
+  const router = useRouter();
+  const [selectedTicketId, setSelectedTicketId] = useState(ticketId ?? "");
+  const [participantIds, setParticipantIds] = useState<string[]>([]);
+  const candidates = useActivityLogParticipants(selectedTicketId);
+  const mutation = useCreateActivityLog();
+  const validParticipantIds = participantIds.filter((id) => candidates.data?.some((candidate) => candidate.id === id));
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!candidates.data?.length || validParticipantIds.length === 0) return;
+    const form = new FormData(event.currentTarget);
+    const serviceStartedAt = tijuanaInputToIso(String(form.get("serviceStartedAt") ?? ""));
+    const endedInput = String(form.get("serviceEndedAt") ?? "");
+    const serviceEndedAt = endedInput ? tijuanaInputToIso(endedInput) : undefined;
+    const timeSpentMinutes = Number(form.get("timeSpentMinutes"));
+    const activity = String(form.get("activity") ?? "").trim();
+    if (!serviceStartedAt || (endedInput && !serviceEndedAt) || !activity || !Number.isFinite(timeSpentMinutes)) return;
+    const body: ActivityLogCreateRequest = { ticketId: selectedTicketId, activity, participantIds: validParticipantIds, serviceStartedAt,
+      ...(serviceEndedAt ? { serviceEndedAt } : {}), timeSpentMinutes,
+      status: String(form.get("status")) as ActivityLogCreateRequest["status"] };
+    try { const created = await mutation.mutateAsync(body); router.push(`/activity-log/${created.id}`); }
+    catch { /* El backend conserva la validación definitiva; el error se presenta abajo. */ }
+  };
+  const noCandidates = candidates.isSuccess && candidates.data.length === 0;
+  return <section className="grid gap-5"><form className="grid gap-5 rounded-xl border bg-surface p-5" onSubmit={onSubmit}>
+    <div className="grid gap-1.5"><label htmlFor="create-ticket-id">Ticket (UUID)</label><Input autoComplete="off" id="create-ticket-id" onChange={(event) => { setSelectedTicketId(event.target.value.trim()); setParticipantIds([]); }} placeholder="Selecciona o pega el id del ticket" value={selectedTicketId} /><p className="text-xs text-muted-foreground">Desde el detalle de un ticket, este campo llega preseleccionado.</p></div>
+    <div aria-live="polite" className="rounded-lg border p-4">
+      {!selectedTicketId && <p className="text-sm text-muted-foreground">Indica un ticket para consultar los participantes autorizados.</p>}
+      {selectedTicketId && candidates.isFetching && <p role="status" className="text-sm">Cargando participantes…</p>}
+      {selectedTicketId && candidates.isError && <div role="alert"><p className="text-sm text-danger">No se pudieron cargar los participantes. Verifica el ticket y vuelve a intentar.</p>{candidates.error instanceof ApiError && candidates.error.requestId && <p className="mt-1 text-xs text-muted-foreground">Referencia: {candidates.error.requestId}</p>}<Button className="mt-2" onClick={() => void candidates.refetch()} type="button" variant="outline">Reintentar</Button></div>}
+      {noCandidates && <p className="text-sm text-muted-foreground">Este ticket no tiene participantes elegibles. No se puede registrar la bitácora sin seleccionar al menos uno.</p>}
+      {candidates.data && candidates.data.length > 0 && <fieldset className="grid gap-2"><legend className="mb-2 font-medium">Participantes (selecciona uno o más)</legend>{candidates.data.map((person) => <label className="flex items-center gap-2 text-sm" key={person.id}><input checked={validParticipantIds.includes(person.id)} onChange={(event) => setParticipantIds((current) => event.target.checked ? [...current.filter((id) => candidates.data!.some((candidate) => candidate.id === id)), person.id] : current.filter((id) => id !== person.id))} type="checkbox" value={person.id} />{person.fullName}<span className="text-xs text-muted-foreground">({person.role})</span></label>)}</fieldset>}
     </div>
-    <div className="flex flex-wrap gap-3">
-      {ticketId && <Link className={buttonVariants({ variant: "outline" })} href={`/tickets/${ticketId}`}>Volver al ticket</Link>}
-      <Link className={buttonVariants({ variant: "outline" })} href="/activity-log">Volver a bitácora</Link>
-    </div>
-  </section>;
+    <div className="grid gap-1.5"><label htmlFor="create-activity">Actividad</label><Textarea id="create-activity" name="activity" required /></div>
+    <div className="grid gap-4 sm:grid-cols-2"><div className="grid gap-1.5"><label htmlFor="create-start">Inicio (hora de Tijuana)</label><Input id="create-start" name="serviceStartedAt" required type="datetime-local" /></div><div className="grid gap-1.5"><label htmlFor="create-end">Fin (opcional, hora de Tijuana)</label><Input id="create-end" name="serviceEndedAt" type="datetime-local" /></div></div>
+    <div className="grid gap-4 sm:grid-cols-2"><div className="grid gap-1.5"><label htmlFor="create-duration">Tiempo invertido (minutos)</label><Input id="create-duration" min="0" name="timeSpentMinutes" required step="any" type="number" /></div><div className="grid gap-1.5"><label htmlFor="create-status">Estado</label><Select defaultValue="IN_PROGRESS" id="create-status" name="status"><option value="IN_PROGRESS">En proceso</option><option value="COMPLETED">Finalizado</option></Select></div></div>
+    {mutation.isError && <p className="text-sm text-danger" role="alert">{mutation.error instanceof Error ? mutation.error.message : "No se pudo crear la bitácora."}{mutation.error instanceof ApiError && mutation.error.requestId && <span className="mt-1 block text-xs">Referencia: {mutation.error.requestId}</span>}</p>}
+    <div className="flex flex-wrap justify-end gap-2"><Link className={buttonVariants({ variant: "outline" })} href={selectedTicketId ? `/tickets/${selectedTicketId}` : "/activity-log"}>Cancelar</Link><Button disabled={mutation.isPending || candidates.isFetching || !candidates.data?.length || validParticipantIds.length === 0} type="submit" variant="primary">{mutation.isPending ? "Guardando…" : "Registrar actividad"}</Button></div>
+  </form></section>;
 }
 
 export type { ActivityLogStatus };

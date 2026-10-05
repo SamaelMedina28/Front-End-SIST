@@ -17,17 +17,16 @@ Se usan los esquemas OpenAPI generados `ActivityLogListItem`, `ActivityLogDetail
 - `GET /api/v1/activity-log/{id}`: detalle y snapshots.
 - `PATCH /api/v1/activity-log/{id}`: solo campos editables del esquema parcial; no envía ticketId.
 - `GET /api/v1/activity-log/{id}/history`: solo SUB_MANAGER y ADMIN en la interfaz.
-- `POST /api/v1/activity-log`: el contrato requiere ticketId, activity, participantIds, serviceStartedAt, timeSpentMinutes y status; serviceEndedAt admite ausencia o null. El frontend no envía POST mientras no pueda seleccionar participantes verificados.
+- `POST /api/v1/activity-log`: el contrato requiere ticketId, activity, participantIds, serviceStartedAt, timeSpentMinutes y status; serviceEndedAt admite ausencia o null. El alta SUB_MANAGER envía IDs devueltos por el catálogo autorizado; el backend conserva la validación definitiva.
+- `GET /api/v1/catalog/activity-log-participants?ticketId=...`: candidatos activos para un ticket existente; respuesta tipada `ActivityLogParticipantCandidate[]`. La consulta cambia con ticketId y no usa `/support-members`.
 
 La API aplica el scope de áreas a SUPPORT/SUB_MANAGER. `requestApiEnvelope` conserva `meta` para la paginación real. El detalle usa los snapshots del response (ticket, falla y reportero) y no consulta datos actuales para reconstruir el pasado.
 
 El detalle del ticket ofrece un enlace `Ver bitácora` usando el filtro real `ticketId`; SUB_MANAGER también obtiene el acceso a registrar actividad con el ticket preseleccionado.
 
-## Participantes: bloqueo de creación
+## Participantes y creación
 
-El backend exige `participantIds`, pero no expone a SUB_MANAGER un catálogo autorizado de participantes. `/support-members` es ADMIN-only y no se consume desde este rol. No hay lista hardcodeada ni se envía `participantIds: []`. La ruta de creación muestra el bloqueo y, desde un ticket, conserva su id preseleccionado. La edición presenta los participantes existentes como solo lectura y permite editar otros campos.
-
-Para desbloquear POST, el backend debe exponer un endpoint de candidatos que SUB_MANAGER pueda consultar (o cambiar el contrato para que el backend resuelva participantes). No se modificó backend.
+El formulario de creación es solo para SUB_MANAGER, admite un `ticketId` preseleccionado o editable y consulta el catálogo autorizado al cambiarlo. Permite seleccionar uno o más candidatos y envía sus IDs reales en `participantIds`; si no hay candidatos, la consulta falla o no hay selección, no permite POST. Un cambio de ticket limpia selecciones anteriores y el backend sigue siendo autoridad para validar elegibilidad. `/support-members` permanece ADMIN-only y no se consume. SUPPORT conserva la experiencia read-only. Las mutaciones POST no se reintentan y al éxito invalidan lista, detalle e historial relacionados.
 
 ## Fechas, duración y estado
 
@@ -35,7 +34,7 @@ Los estados aceptados son `IN_PROGRESS` y `COMPLETED`, con labels “En proceso�
 
 ## Edición e historial
 
-PATCH se construye solo con campos dirty y autorizados por `ActivityLogPatchRequest`. No se envía el objeto completo, ticketId ni participantIds. Un 409 informa el conflicto y se pide revisar la versión más reciente; Query invalida lista, detalle e historial al guardar. La revisión es inmutable; la UI compara únicamente los campos conocidos y omite cualquier campo nuevo sin renderizar JSON crudo.
+PATCH se construye solo con campos dirty y autorizados por `ActivityLogPatchRequest`. No se envía el objeto completo ni ticketId. Los participantes existentes siguen de solo lectura en edición. Un 409 informa el conflicto y se pide revisar la versión más reciente; Query invalida lista, detalle e historial al guardar. La revisión es inmutable; la UI compara únicamente los campos conocidos y omite cualquier campo nuevo sin renderizar JSON crudo.
 
 ## UX y errores
 

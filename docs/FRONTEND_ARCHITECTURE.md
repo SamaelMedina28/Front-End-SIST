@@ -58,8 +58,8 @@ server solo componen vistas; no implementan un BFF ni leen credenciales.
 
 Los tokens y primitives del Design System permanecen compartidos, pero su ruta
 de showcase temporal ya se retiró y no forma parte del producto. AppShell
-recibe datos de sesión mediante props. El logo continúa siendo una marca
-textual provisional, no un asset oficial. Las variables públicas viven en
+recibe datos de sesión mediante props. `AppLogo` reutiliza el escudo UABC local;
+no existe un asset específico de FCQI. Las variables públicas viven en
 `.env.local` (ignorado) y se documentan en `.env.example`.
 
 Ver `AUTH_AND_RBAC.md` para rutas, matriz de roles, transiciones, errores y

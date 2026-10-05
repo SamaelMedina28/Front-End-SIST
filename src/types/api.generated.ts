@@ -499,6 +499,85 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/catalog/activity-log-participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar candidatos de participantes para bitácora
+         * @description Solo SUB_MANAGER y ADMIN. Requiere un ticket existente; el área se obtiene de su categoría. SUB_MANAGER solo consulta tickets dentro de sus supportAreas. Devuelve únicamente usuarios activos con rol SUPPORT, SUB_MANAGER o ADMIN (los mismos criterios de participante que valida POST /activity-log); no expone PII ni reemplaza la validación server-side de participantIds. No amplía /support-members, que permanece ADMIN-only.
+         */
+        get: {
+            parameters: {
+                query: {
+                    ticketId: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Candidatos activos ordenados por nombre e id. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StandardSuccessResponse"] & {
+                            data?: components["schemas"]["ActivityLogParticipantCandidate"][];
+                        };
+                    };
+                };
+                /** @description Sesión ausente o inválida. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StandardErrorResponse"];
+                    };
+                };
+                /** @description El usuario no tiene permiso para esta operación. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StandardErrorResponse"];
+                    };
+                };
+                /** @description El recurso solicitado no existe. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StandardErrorResponse"];
+                    };
+                };
+                /** @description Los datos enviados no son válidos. */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StandardErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -3562,6 +3641,13 @@ export interface components {
             /** Format: uuid */
             id: string;
             fullName: string;
+        };
+        ActivityLogParticipantCandidate: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            /** @enum {string} */
+            role: "SUPPORT" | "SUB_MANAGER" | "ADMIN";
         };
         ActivityLogRevision: {
             /** Format: uuid */

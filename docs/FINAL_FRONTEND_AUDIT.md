@@ -8,18 +8,17 @@ No es una prueba de penetración ni sustituye aceptación con sesiones reales.
 
 ## Evaluación ejecutiva
 
-El código funcional está implementado para los módulos enumerados, salvo la
-creación de bitácora SUB_MANAGER, bloqueada por falta de un catálogo backend
-autorizado de participantes. Se corrigieron fallos de caché de dashboard,
+El código funcional está implementado para los módulos enumerados, incluida
+la creación de bitácora SUB_MANAGER mediante el catálogo backend autorizado de
+participantes. Se corrigieron fallos de caché de dashboard,
 política fail-closed, acceso al perfil por rol, placeholders de módulos,
 documentación obsoleta y errores globales/ruta no encontrada. La ruta de
 showcase `/design-system` se retiró. La salida de comandos y el estado final se
 registran al terminar esta auditoría.
 
-**CODE READY:** No para declarar el producto completo listo para producción:
-el flujo de creación de bitácora tiene un blocker contractual y queda trabajo
-de aceptación manual. Los módulos no bloqueados están implementados y pasan las
-verificaciones automatizadas indicadas al final.
+**CODE READY:** El alcance funcional revisado está implementado y sujeto a
+verificaciones automatizadas y aceptación manual; esto no implica producción
+lista ni validación operativa.
 
 **OPERATIONALLY VALIDATED:** No. Faltan validación de OAuth/cookies/CORS con
 backend real, cuentas por rol, configuración HTTPS/variables de producción y
@@ -32,8 +31,8 @@ ejecución del plan manual. No se afirma “production ready”.
 | Auth | PENDING MANUAL VALIDATION | OAuth Google, cookies HTTP-only, onboarding y logout integrados; validar con sesión real. |
 | USER | PENDING MANUAL VALIDATION | Dashboard, tickets, alta, detalle/timeline y perfil. |
 | SUPPORT | PENDING MANUAL VALIDATION | Dashboard, cola, autoasignación, estados y lectura de bitácora. |
-| SUB_MANAGER | PARTIAL | Capacidades técnicas, bitácora e inventario; creación de bitácora depende de catálogo backend. |
-| Activity Log | PARTIAL | Lectura, detalle, edición e historial; creación SUB_MANAGER bloqueada por contrato/backend. |
+| SUB_MANAGER | PENDING MANUAL VALIDATION | Capacidades técnicas, bitácora (incluida creación con participantes autorizados) e inventario. |
+| Activity Log | PENDING MANUAL VALIDATION | Lectura, detalle, edición, historial y creación SUB_MANAGER con catálogo de participantes autorizado. SUPPORT permanece read-only. |
 | Inventory | PENDING MANUAL VALIDATION | Listado, detalle, historial, alta, edición y desactivación lógica según contrato. |
 | Categories | PENDING MANUAL VALIDATION | Administración de categorías/subcategorías, desactivación e invalidación de catálogo. |
 | Support Members | PENDING MANUAL VALIDATION | Listado, filtros, alta técnica, detalle, edición, baja/reactivación autorizadas. |
@@ -47,8 +46,8 @@ validarlo con backend/datos y rol reales; no equivale a aceptación operativa.
 ## OpenAPI e inventario de endpoints
 
 `pnpm generate:api` se ejecutó contra el OpenAPI actual de
-`http://localhost:3000/api/openapi.json`. Fue exitoso y no produjo diff en
-`src/types/api.generated.ts`; el archivo permanece generado, sin lógica manual.
+`http://localhost:3000/api/openapi.json`; el archivo `src/types/api.generated.ts`
+incluye el catálogo `ActivityLogParticipantCandidate`.
 Los tipos de bodies, filtros, respuestas y paths se derivan de
 `components`/`paths`; las comprobaciones runtime solo validan envoltura,
 identificadores y metadatos de paginación.
@@ -61,7 +60,7 @@ identificadores y metadatos de paginación.
 | TICKETS técnico/ADMIN | `GET /tickets`, detalle/eventos; `POST /tickets/{id}/assign-self`; `PATCH /tickets/{id}/status`; `PUT` y `DELETE /tickets/{id}/assignee`; `PATCH /tickets/{id}/priority` | Lista compartida según rol; acciones técnicas/admin limitadas por rol en UI | `TicketFilters`, `TicketStatusInput`, `AdminAssigneeInput`, `TicketPriorityInput`; la prioridad solo ADMIN |
 | DASHBOARD | `GET /dashboard` | USER, SUPPORT/SUB_MANAGER y ADMIN; el backend deriva forma/alcance de sesión | `UserDashboardResponse`, `SupportDashboardResponse` o `AdminDashboardResponse` |
 | ACTIVITY LOG | `GET /activity-log`, `GET /activity-log/{id}`, `GET /activity-log/{id}/history`, `PATCH /activity-log/{id}` | SUPPORT lectura; SUB_MANAGER lectura/edición; ADMIN conforme al contrato | filtros y `ActivityLogPatchRequest`; listado/detalle/revisiones |
-| ACTIVITY LOG create | Contrato OpenAPI expone `POST /activity-log`; el frontend deliberadamente no lo llama | Bloqueado para SUB_MANAGER: `participantIds` es requerido y no hay catálogo autorizado | No se genera body ficticio ni `participantIds=[]`; no se usa `/support-members` como bypass |
+| ACTIVITY LOG create | `GET /catalog/activity-log-participants?ticketId=...`, `POST /activity-log` | Creación solo SUB_MANAGER en UI; SUPPORT read-only | `ActivityLogParticipantCandidate[]`, `ActivityLogCreateRequest`; POST sin retry, `participantIds` reales del catálogo |
 | INVENTORY | `GET /inventory`, `GET /inventory/{id}`, `GET /inventory/{id}/tickets`, `POST /inventory`, `PATCH /inventory/{id}`, `DELETE /inventory/{id}` | SUB_MANAGER y ADMIN | `InventoryFilters`, filtros de historial y schemas generados; DELETE es desactivación lógica según contrato/UI |
 | CATEGORIES | `GET/POST /categories`, `PATCH/DELETE /categories/{id}`, `POST /categories/{categoryId}/subcategories`, `PATCH/DELETE /subcategories/{id}` | ADMIN | filtros y schemas de categoría/subcategoría OpenAPI; DELETE se presenta como desactivar |
 | SUPPORT MEMBERS | `GET/POST /support-members`, `GET/PATCH/DELETE /support-members/{id}` | ADMIN únicamente; altas limitadas a SUPPORT/SUB_MANAGER | filtros paginados y schemas generados; sin password/invitation |
@@ -83,8 +82,9 @@ deduplicación y límite concurrente.
 - Los enums que sí están definidos (roles, comunidad, prioridad de request,
   estados de ticket, áreas) se derivan del schema generado; no se mantiene un
   contrato paralelo incompatible.
-- El POST de bitácora está documentado en OpenAPI aunque la vista no lo llama.
-  Esta es una limitación consciente, no discrepancia corregible desde frontend.
+- La selección de participantes para alta procede del catálogo específico de
+  bitácora; la validación server-side de ticket y participantes sigue siendo
+  definitiva. `/support-members` no se consume para este flujo.
 
 ## Rutas Next
 
@@ -169,10 +169,10 @@ manual de todos los viewports. Ver 390×844, 768×1024 y 1440×900 en el plan
 manual antes de aceptación.
 
 La interfaz de producto está en español. El showcase/datos de ejemplo fueron
-retirados y no se encontraron mocks runtime. El logo oficial no está en el
-repo: `AppLogo` usa marca textual provisional “UABC”; falta recibir asset
-autorizado. CSS usa Inter/system fallback; no se incluyen fuentes propietarias
-de Proxima Nova.
+retirados y no se encontraron mocks runtime. `AppLogo` reutiliza
+`public/Logo-uabc.png` como escudo UABC institucional; no es un asset específico
+de FCQI. CSS usa Inter/system fallback; no se incluyen fuentes propietarias de
+Proxima Nova.
 
 ## Seguridad estática y calidad
 
@@ -192,28 +192,34 @@ permanecen. No se hizo refactor general de duplicaciones de componentes.
 Dependencias declaradas corresponden al stack en uso: Next/React, TanStack
 Query, openapi-fetch/openapi-typescript, RHF/Zod, Tailwind/PostCSS, ESLint,
 Vitest/Testing Library y utilidades de clases/iconos. No se identificó un
-paquete temporal obvio para eliminar; el dictamen de vulnerabilidades depende
-de `pnpm audit` al final.
+paquete temporal obvio para eliminar. `pnpm audit` encontró tres advisories en
+dependencias de desarrollo: `braces@3.0.3` (HIGH, transitiva bajo
+`eslint-config-next`/`fast-glob`, agotamiento de stack ante patrones anidados;
+parche `>=3.0.4`, [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm));
+`vitest@3.2.7` y `@vitest/mocker` (MODERATE, path traversal/lectura arbitraria
+con redirect mock; parche Vitest `>=4.1.11`,
+[GHSA-82fw-gwwq-j7x9](https://github.com/advisories/GHSA-82fw-gwwq-j7x9)).
+La exposición es de herramientas de desarrollo/pruebas, no de dependencias
+runtime de producción; el caso de Vitest requiere emplear la función de mock
+afectada. No se aplicó actualización mayor ni override sin verificar
+compatibilidad: actualizar Vitest 3→4 requiere una tarea focalizada con
+revisión de compatibilidad; el parche de `braces` puede tratarse como override
+transitivo acotado. Ambos quedan registrados para remediación.
 
 ## Limitaciones conocidas y blockers
 
-1. **CONTRACT/BACKEND BLOCKER — creación de bitácora SUB_MANAGER.** El backend
-   requiere `participantIds` en `POST /activity-log` pero no ofrece candidatos
-   autorizados para ese rol. No es bug frontend. Opciones futuras (no
-   implementadas): endpoint de catálogo de participantes accesible para
-   SUB_MANAGER, endpoint específico de candidatos de bitácora o rediseño
-   explícito del contrato. No ampliar permisos de `/support-members`.
-2. OAuth real y aceptación rol por rol pendientes de credenciales/cuentas de
+1. OAuth real y aceptación rol por rol pendientes de credenciales/cuentas de
    prueba autorizadas; no se incluyen credenciales en el plan.
-3. Backend real/CORS/cookies de producción, HTTPS, dominios y variables de
+2. Backend real/CORS/cookies de producción, HTTPS, dominios y variables de
    producción no se validaron desde este workspace.
-4. UABC/FCQI debe definir verificación de membresía; dominio UABC por sí solo
+3. UABC/FCQI debe definir verificación de membresía; dominio UABC por sí solo
    no garantiza adscripción FCQI.
-5. Falta el asset oficial de marca.
-6. `--webpack` en `dev`/`build` y `experimental.useTypeScriptCli: false` se
+4. Existe escudo UABC en uso; si la institución entrega una marca específica
+   FCQI, sustituirlo por el asset autorizado.
+5. `--webpack` en `dev`/`build` y `experimental.useTypeScriptCli: false` se
    mantienen por el problema ambiental documentado. TypeScript se valida
    explícitamente con `pnpm exec tsc --noEmit`; no se deshabilitó.
-7. Sin sesión provisionada no se pudo comprobar visualmente cada rol con datos
+6. Sin sesión provisionada no se pudo comprobar visualmente cada rol con datos
    reales; ejecución descrita en `MANUAL_ACCEPTANCE_TEST_PLAN.md`.
 
 ## Documentación
@@ -228,15 +234,14 @@ estado final. El plan manual está en `MANUAL_ACCEPTANCE_TEST_PLAN.md`.
 
 ## Deuda técnica priorizada
 
-1. Alta — resolver el catálogo/contrato de participantes y entonces habilitar
-   creación real de bitácora para SUB_MANAGER.
-2. Alta — completar aceptación OAuth, cookies/CORS/HTTPS y permisos con cuentas
-   reales autorizadas; completar manual acceptance por cada rol.
-3. Media — recibir e integrar el logo oficial y verificar sus alternativas
-   accesibles.
-4. Media — cuando exista staging, revisar contraste y navegación teclado/
+1. Alta — completar aceptación OAuth, cookies/CORS/HTTPS y permisos con cuentas
+   reales autorizadas; completar aceptación manual por cada rol, incluido el
+   flujo actualizado de creación de bitácora.
+2. Media — sustituir el escudo UABC por marca FCQI solo si se entrega asset
+   oficial; verificar la alternativa accesible.
+3. Media — cuando exista staging, revisar contraste y navegación teclado/
    lector de pantalla con pruebas manuales/WCAG; el análisis actual es estático.
-5. Baja — reevaluar workaround Webpack/Next al actualizar la plataforma; no
+4. Baja — reevaluar workaround Webpack/Next al actualizar la plataforma; no
    retirarlo hasta reproducir que Turbopack y el typecheck configurado operan.
 
 ## Verificaciones
@@ -245,13 +250,24 @@ Resultados finales (registrar aquí al completar comandos):
 
 | Comando | Resultado |
 | --- | --- |
-| `pnpm generate:api` | Pendiente |
-| `pnpm lint` | Pendiente |
-| `pnpm exec tsc --noEmit` | Pendiente |
-| `pnpm test` | Pendiente |
-| `pnpm build` | Pendiente |
-| `pnpm audit` | Pendiente |
-| `git diff --check` | Pendiente |
+| `pnpm generate:api` | PASS — openapi-typescript 7.13.0; generó el endpoint autorizado `GET /catalog/activity-log-participants` y su esquema candidato |
+| `pnpm lint` | PASS |
+| `pnpm exec tsc --noEmit` | PASS |
+| `pnpm test` | PASS — 18 archivos, 130 pruebas |
+| `pnpm build` | PASS — Next.js 16.3.8/Webpack, 19 rutas generadas; `/design-system` no aparece. `useTypeScriptCli` sigue desactivado según workaround documentado. |
+| `pnpm audit` | 1 HIGH (`braces@3.0.3`), 2 MODERATE (`vitest@3.2.7`, `@vitest/mocker`); exit 1 por advisories |
+| `git diff --check` | PASS |
+
+`pnpm generate:api` completó con openapi-typescript 7.13.0 y añadió el contrato
+de candidatos a `src/types/api.generated.ts`. No quedan `.only`, `.skip` ni `.todo`. Se
+verifican por conducta auth/RBAC, USER, SUPPORT, bitácora, categorías, soporte,
+tickets ADMIN, dashboard ADMIN, reportes y schemas/formas de inventario; no se
+persigue un porcentaje artificial.
+
+El smoke test de `pnpm dev` en 3001 no pudo ejecutarse: Next recibió
+`EADDRINUSE` al enlazar el puerto, aunque las consultas HTTP no respondieron.
+No se identificó ni detuvo el proceso que ocupa el puerto. Repetir el smoke
+test cuando 3001 esté disponible.
 
 No se ejecutó pentesting ni se modificó backend. La inspección de origen no
 valida el despliegue final; usar el plan manual antes de liberación.
