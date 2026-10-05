@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+coverage/
+
+.env*
+!.env.example
+
+*.log
+.DS_Store
+
+src/types/api.generated.ts
