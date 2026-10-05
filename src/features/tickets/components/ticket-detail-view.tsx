@@ -57,7 +57,7 @@ export function TicketDetailView({ ticketId }: { ticketId: string }) {
       breadcrumb={<Link className="inline-flex items-center gap-1 hover:text-foreground" href="/tickets"><ArrowLeft aria-hidden="true" size={14} /> {user?.role === "SUPPORT" ? "Cola de soporte" : "Mis tickets"}</Link>}
       title={ticket.title}
       description="Detalle de la solicitud de soporte técnico."
-      actions={<div className="flex flex-wrap items-center gap-2">{user?.role === "SUB_MANAGER" && <Link className={cn(buttonVariants({ variant: "primary", size: "sm" }))} href={`/activity-log/new?ticketId=${encodeURIComponent(ticket.id)}`}>Registrar actividad</Link>}<span className="rounded-md border bg-muted px-3 py-2 font-mono text-sm font-semibold">{ticket.code}</span></div>}
+      actions={<div className="flex flex-wrap items-center gap-2">{(user?.role === "SUPPORT" || user?.role === "SUB_MANAGER" || user?.role === "ADMIN") && <Link className={cn(buttonVariants({ variant: "outline", size: "sm" }))} href={`/activity-log?ticketId=${encodeURIComponent(ticket.id)}`}>Ver bitácora</Link>}{user?.role === "SUB_MANAGER" && <Link className={cn(buttonVariants({ variant: "primary", size: "sm" }))} href={`/activity-log/new?ticketId=${encodeURIComponent(ticket.id)}`}>Registrar actividad</Link>}<span className="rounded-md border bg-muted px-3 py-2 font-mono text-sm font-semibold">{ticket.code}</span></div>}
     />
     <section aria-label="Estado y prioridad" className="flex flex-wrap items-center gap-2">
       {isTicketStatus(ticket.status) ? <StatusBadge status={ticket.status} /> : <span className="rounded-md border px-2.5 py-1 text-xs">{ticketStatusLabel(ticket.status)}</span>}

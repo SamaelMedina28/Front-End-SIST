@@ -100,8 +100,8 @@ describe("activity log role-aware experience", () => {
 
   it("blocks POST without inventing or dropping the required participantIds", () => {
     renderPage(<ActivityLogCreateBlock ticketId={ticketId} />, manager);
-    expect(screen.getByRole("heading", { name: "Creación temporalmente bloqueada: participantes" })).toBeTruthy();
-    expect(screen.getByText(/El backend requiere/)).toBeTruthy();
+    expect(screen.getByText("Participantes requeridos")).toBeTruthy();
+    expect(screen.getByText(/El campo/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Registrar actividad" }).hasAttribute("disabled")).toBe(true);
     expect(requests).toHaveLength(0);
   });

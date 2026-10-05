@@ -21,6 +21,8 @@ Se usan los esquemas OpenAPI generados `ActivityLogListItem`, `ActivityLogDetail
 
 La API aplica el scope de áreas a SUPPORT/SUB_MANAGER. `requestApiEnvelope` conserva `meta` para la paginación real. El detalle usa los snapshots del response (ticket, falla y reportero) y no consulta datos actuales para reconstruir el pasado.
 
+El detalle del ticket ofrece un enlace `Ver bitácora` usando el filtro real `ticketId`; SUB_MANAGER también obtiene el acceso a registrar actividad con el ticket preseleccionado.
+
 ## Participantes: bloqueo de creación
 
 El backend exige `participantIds`, pero no expone a SUB_MANAGER un catálogo autorizado de participantes. `/support-members` es ADMIN-only y no se consume desde este rol. No hay lista hardcodeada ni se envía `participantIds: []`. La ruta de creación muestra el bloqueo y, desde un ticket, conserva su id preseleccionado. La edición presenta los participantes existentes como solo lectura y permite editar otros campos.
