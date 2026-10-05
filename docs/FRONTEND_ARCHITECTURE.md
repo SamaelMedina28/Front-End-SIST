@@ -12,6 +12,14 @@ sesión; `mutations/session.ts` coordina onboarding, logout y caché. Los compon
 de la feature implementan las entradas y estados, y `schemas/complete-profile.ts`
 contiene exclusivamente validación de experiencia de usuario y etiquetas.
 
+El Paso 5 añade `features/tickets` (dashboard, listado, formulario, detalle,
+eventos y caché) y `features/profile` (edición de perfil). Sus APIs derivan tipos
+del OpenAPI generado; las páginas App Router se limitan a componer vistas. La
+lectura de tickets conserva `meta` de paginación con `requestApiEnvelope`, mientras
+`requestApi` sigue siendo la interfaz sencilla para respuestas que solo necesitan
+`data`. Los módulos invalidan únicamente las queries afectadas y reutilizan
+`auth/me` como fuente de la sesión actual.
+
 TanStack Query es la única fuente del estado remoto. QueryProvider sigue en el
 layout raíz; no existe un segundo contexto de usuario. El contrato generado
 define los tipos y Express valida permisos, estado activo y sesión. Las páginas
@@ -24,5 +32,6 @@ placeholder textual documentado. Las variables públicas viven en `.env.local`
 
 Ver `AUTH_AND_RBAC.md` para rutas, matriz de roles, transiciones, errores y
 limpieza de caché. La navegación de escritorio y móvil comparte la misma
-configuración de UX-RBAC; Express conserva toda autorización real. Los módulos
-de negocio no forman parte de la implementación actual.
+configuración de UX-RBAC; Express conserva toda autorización real. El alcance,
+las reglas del formulario y las limitaciones del módulo actual están en
+`USER_MODULE.md`.
