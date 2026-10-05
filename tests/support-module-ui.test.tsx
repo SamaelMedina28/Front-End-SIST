@@ -322,4 +322,11 @@ describe("SUPPORT ticket actions", () => {
     expect(screen.queryByRole("heading", { name: "Acciones de soporte" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Tomar ticket" })).toBeNull();
   });
+
+  it("hides actions when the ticket area is not among the support user's areas", () => {
+    renderWithClient(<SupportTicketActions onRefresh={vi.fn()} ticket={detail} user={{ ...supportUser, supportAreas: ["SOFTWARE"] }} />);
+    expect(screen.getByText("Este ticket no corresponde a las áreas configuradas para tu cuenta. Las acciones están ocultas.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Tomar ticket" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Marcar en revisión" })).toBeNull();
+  });
 });
