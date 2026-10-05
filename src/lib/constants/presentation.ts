@@ -1,10 +1,14 @@
+import type { Role, TicketPriority, TicketStatus } from "@/types/api";
+
+export type { Role, TicketPriority, TicketStatus };
+
 export const ticketStatusLabels = {
   OPEN: "Abierto",
   IN_REVIEW: "En revisión",
   IN_PROGRESS: "En proceso",
   COMPLETED: "Finalizado",
   CANCELLED: "Cancelado",
-} as const;
+} satisfies Record<TicketStatus, string>;
 
 export const ticketStatusTones = {
   OPEN: "neutral",
@@ -12,28 +16,25 @@ export const ticketStatusTones = {
   IN_PROGRESS: "warning",
   COMPLETED: "success",
   CANCELLED: "danger",
-} as const;
+} satisfies Record<TicketStatus, SemanticTone>;
 
 export const ticketPriorityLabels = {
   LOW: "Baja",
   MEDIUM: "Media",
   HIGH: "Alta",
-} as const;
+} satisfies Record<TicketPriority, string>;
 
 export const ticketPriorityTones = {
   LOW: "neutral",
   MEDIUM: "warning",
   HIGH: "danger",
-} as const;
+} satisfies Record<TicketPriority, SemanticTone>;
 
 export const roleLabels = {
   USER: "Usuario",
   SUPPORT: "Soporte",
   SUB_MANAGER: "Subencargado",
   ADMIN: "Administrador",
-} as const;
+} satisfies Record<Role, string>;
 
-export type TicketStatus = keyof typeof ticketStatusLabels;
-export type TicketPriority = keyof typeof ticketPriorityLabels;
-export type Role = keyof typeof roleLabels;
 export type SemanticTone = "neutral" | "info" | "success" | "warning" | "danger";

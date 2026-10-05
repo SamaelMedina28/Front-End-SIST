@@ -8,5 +8,3 @@ coverage/
 
 *.log
 .DS_Store
-
-src/types/api.generated.ts
