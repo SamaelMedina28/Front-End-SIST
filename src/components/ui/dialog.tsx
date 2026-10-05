@@ -23,7 +23,7 @@ export function DialogContent({ open, onOpenChange, className, children, ...prop
   return (
     <dialog
       aria-labelledby="dialog-title"
-      className={cn("w-[min(100%-2rem,32rem)] rounded-2xl border bg-surface p-0 text-surface-foreground shadow-xl backdrop:bg-foreground/30", className)}
+      className={cn("fixed inset-0 m-auto h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto overscroll-contain rounded-2xl border bg-surface p-0 text-surface-foreground shadow-xl backdrop:bg-foreground/30", className)}
       onCancel={() => onOpenChange(false)}
       onClose={() => onOpenChange(false)}
       ref={ref}

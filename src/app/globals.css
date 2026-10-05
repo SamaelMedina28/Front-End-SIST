@@ -7,11 +7,11 @@
   --uabc-black: #000000;
   --uabc-white: #ffffff;
 
-  --background: #edf4ef;
+  --background: #f8f9f9;
   --foreground: #17211d;
-  --surface: #fffdf7;
+  --surface: #ffffff;
   --surface-foreground: #17211d;
-  --card: #f9fcf8;
+  --card: var(--surface);
   --card-foreground: #17211d;
   --popover: #ffffff;
   --popover-foreground: #17211d;

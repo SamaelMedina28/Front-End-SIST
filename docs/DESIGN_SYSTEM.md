@@ -24,9 +24,8 @@ Los componentes consumen tokens semánticos definidos en
 
 El verde UABC es la identidad primaria y ahora domina la navegación lateral y
 la barra superior; el ocre institucional destaca la navegación activa y el
-borde de la barra. Fondo y superficies usan matices verde/crema para bajar el
-blanco puro sin perder contraste ni legibilidad. El azul se reserva para
-información y foco.
+borde de la barra. El contenido usa un fondo neutro `#f8f9f9`, texto `#17211d`
+y superficies/tarjetas blancas. El azul se reserva para información y foco.
 
 ## Tipografía
 
@@ -65,6 +64,11 @@ degradan progresivamente. Se mantienen labels visibles, botones y links
 semánticos, focus visible, estados disabled/invalid explícitos y mensajes
 textuales de error.
 
+Los formularios modales, alertas y confirmaciones comparten `DialogContent`,
+centrado en ambos ejes respecto de la pantalla. Su tamaño deja un margen de
+16px en cada borde y admite desplazamiento interno si el contenido supera la
+altura disponible, también en móvil.
+
 ## Logo
 
 `public/Logo-uabc.png` contiene el escudo institucional proporcionado en el
@@ -72,6 +76,10 @@ workspace y `AppLogo` lo reutiliza como imagen decorativa; el nombre accesible
 del enlace identifica el sistema. No es una marca específica de FCQI. Mantener
 el archivo de origen y sustituirlo solo si la institución proporciona un asset
 FCQI autorizado.
+
+En la barra lateral, `AppLogo` usa la variante `inverse`: el texto claro se
+integra directamente en el fondo verde, sin un recuadro blanco alrededor de
+toda la marca. El escudo conserva su imagen original y fondo propio.
 
 ## Decisiones y límites del paso 1
 
