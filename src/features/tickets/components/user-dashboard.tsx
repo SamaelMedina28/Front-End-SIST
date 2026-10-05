@@ -51,6 +51,6 @@ export function DashboardExperience() {
   const { data: user } = useCurrentUser();
   if (!user) return <DashboardSkeleton />;
   if (user.role === "USER") return <UserDashboardContent />;
-  if (user.role === "SUPPORT") return <SupportDashboardContent />;
+  if (user.role === "SUPPORT" || user.role === "SUB_MANAGER") return <SupportDashboardContent />;
   return <ModulePlaceholder title="Inicio" description="Esta vista se implementará en la siguiente etapa." />;
 }

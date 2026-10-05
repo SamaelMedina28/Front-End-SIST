@@ -63,7 +63,7 @@ export function TicketDetailView({ ticketId }: { ticketId: string }) {
       {isTicketStatus(ticket.status) ? <StatusBadge status={ticket.status} /> : <span className="rounded-md border px-2.5 py-1 text-xs">{ticketStatusLabel(ticket.status)}</span>}
       {isTicketPriority(ticket.priority) ? <PriorityBadge priority={ticket.priority} /> : <span className="rounded-md border px-2.5 py-1 text-xs">{ticket.priority}</span>}
     </section>
-    {user?.role === "SUPPORT" && <SupportTicketActions onRefresh={() => { void ticketQuery.refetch(); void eventsQuery.refetch(); }} ticket={ticket} user={user} />}
+    {(user?.role === "SUPPORT" || user?.role === "SUB_MANAGER") && <SupportTicketActions onRefresh={() => { void ticketQuery.refetch(); void eventsQuery.refetch(); }} ticket={ticket} user={user} />}
     <div className="grid min-w-0 gap-5 lg:grid-cols-2">
       <Card><CardHeader><CardTitle>Descripción</CardTitle></CardHeader><CardContent><p className="whitespace-pre-wrap break-words text-sm leading-6">{ticket.description}</p></CardContent></Card>
       <Card><CardHeader><CardTitle>Clasificación y ubicación</CardTitle></CardHeader><CardContent>
