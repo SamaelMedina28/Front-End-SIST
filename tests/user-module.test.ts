@@ -81,4 +81,9 @@ describe("URL ticket filter validation", () => {
     expect(ticketFilterEntries(params)).toBe("page=2&pageSize=10&search=TK-123&status=OPEN");
     expect(ticketFilterEntries(params)).not.toContain("userId");
   });
+
+  it("parses only API-supported assignment and support-area filters", () => {
+    expect(parseTicketFilters({ assignment: "mine", supportArea: "NETWORKS" })).toMatchObject({ assignment: "mine", supportArea: "NETWORKS" });
+    expect(parseTicketFilters({ assignment: "everyone", supportArea: "OTHER" })).toMatchObject({ assignment: undefined, supportArea: undefined });
+  });
 });
