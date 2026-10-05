@@ -27,6 +27,13 @@ controles asignados al detalle común. Las mutaciones viven en
 retry y refrescan ticket, eventos, lista y dashboard. Solo PATCH de estado
 envía `Idempotency-Key`.
 
+El Paso 7 reutiliza las mismas vistas y acciones técnicas para SUPPORT y
+SUB_MANAGER. `features/activity-log` integra listado paginado, filtros reales,
+detalle, edición parcial e historial mediante el cliente OpenAPI/TanStack
+Query. La creación se presenta desde el ticket, pero queda bloqueada por la
+ausencia de un catálogo de participantes autorizado para SUB_MANAGER; no se
+usa el endpoint ADMIN-only `/support-members`.
+
 TanStack Query es la única fuente del estado remoto. QueryProvider sigue en el
 layout raíz; no existe un segundo contexto de usuario. El contrato generado
 define los tipos y Express valida permisos, estado activo y sesión. Las páginas

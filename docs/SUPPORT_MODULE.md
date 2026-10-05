@@ -6,13 +6,21 @@
   entregadas por backend, áreas configuradas y `priorityTickets`.
 - `/tickets` comparte las queries, filtros, tabla y tarjetas del módulo de
   tickets. La respuesta paginada se limita al conjunto visible por backend.
-- `/tickets/[id]` reutiliza el detalle y cronología. Solo el rol SUPPORT puede
-  ver las acciones; la UI también exige coincidencia de área y asignación real.
+- `/tickets/[id]` reutiliza el detalle y cronología. SUPPORT y SUB_MANAGER
+  comparten acciones técnicas; la UI también exige coincidencia de área y
+  asignación real.
+- SUB_MANAGER reutiliza dashboard, cola, filtros, detalle y acciones técnicas
+  SUPPORT; no hay un módulo duplicado.
+- `/activity-log` es lectura para SUPPORT; SUB_MANAGER comparte listado/detalle
+  y además ve edición e historial. La creación aparece para SUB_MANAGER desde
+  el detalle del ticket, pero el POST está bloqueado hasta que backend exponga
+  candidatos de participante autorizados.
 - `/profile` sigue usando el formulario compartido. Role, áreas y skills no son
   editables por este módulo.
 
-Los placeholders SUB_MANAGER/ADMIN permanecen. No se implementa bitácora,
-inventario, reportes, administración ni asignación a terceros.
+ADMIN conserva los módulos fuera del alcance como placeholders. No se
+implementan inventario, reportes, administración ni asignación a terceros.
+La especificación de bitácora está en `ACTIVITY_LOG_MODULE.md`.
 
 ## Contrato usado
 

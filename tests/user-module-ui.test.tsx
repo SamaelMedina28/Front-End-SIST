@@ -127,16 +127,18 @@ describe("USER ticket listing", () => {
     expect(push).toHaveBeenCalledWith("/tickets?page=2&pageSize=5");
   });
 
-  it("uses an empty state and keeps staff on the staged placeholder", async () => {
+  it("uses USER empty state and gives SUB_MANAGER the shared technical queue", async () => {
     endpoint("GET", "/api/v1/tickets", () => success([], 200, { page: 1, pageSize: 10, total: 0, totalPages: 0 }));
     endpoint("GET", "/api/v1/catalog/ticket-form", () => success(catalog));
     renderWithClient(<TicketListExperience filters={{}} role="USER" />);
     expect(await screen.findByText("Aún no tienes solicitudes de soporte.")).toBeTruthy();
     cleanup();
     fetchMock.mockClear();
+    endpoint("GET", "/api/v1/tickets", () => success([], 200, { page: 1, pageSize: 10, total: 0, totalPages: 0 }));
+    endpoint("GET", "/api/v1/catalog/ticket-form", () => success(catalog));
     renderWithClient(<TicketListExperience filters={{}} role="SUB_MANAGER" />);
-    expect(await screen.findByText("Esta vista se implementará en la siguiente etapa.")).toBeTruthy();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(await screen.findByText("Cola de soporte")).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalled();
   });
 
   it("ignores malformed subcategory IDs and serializes applied filters to the URL", async () => {

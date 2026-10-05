@@ -30,7 +30,7 @@ function displayRevisionValue(field: RevisionField, value: unknown): string {
 }
 
 export function revisionChanges(revision: ActivityLogRevision) {
-  const fields = Object.keys(revision.newData) as RevisionField[];
+  const fields: RevisionField[] = ["activity", "participantIds", "serviceStartedAt", "serviceEndedAt", "timeSpentMinutes", "status"];
   return fields.flatMap((field) => {
     const before = revision.previousData[field];
     const after = revision.newData[field];

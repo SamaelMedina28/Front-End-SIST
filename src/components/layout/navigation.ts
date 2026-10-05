@@ -38,6 +38,7 @@ export const routeAccess: readonly RouteAccess[] = [
   { path: "/dashboard", roles: everyRole },
   { path: "/tickets/new", roles: ["USER"] },
   { path: "/tickets", roles: everyRole },
+  { path: "/activity-log/new", roles: ["SUB_MANAGER"] },
   { path: "/activity-log", roles: staffRoles },
   { path: "/inventory", roles: managerRoles },
   { path: "/reports", roles: adminRoles },

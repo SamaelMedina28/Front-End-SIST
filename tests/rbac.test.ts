@@ -42,4 +42,12 @@ describe("role-based navigation and route access", () => {
   it("does not grant access to routes absent from the policy", () => {
     expect(canAccess("ADMIN", "/admin/unknown")).toBe(false);
   });
+
+  it("restricts activity creation to SUB_MANAGER and keeps USER outside the module", () => {
+    expect(canAccess("SUB_MANAGER", "/activity-log/new")).toBe(true);
+    expect(canAccess("SUPPORT", "/activity-log/new")).toBe(false);
+    expect(canAccess("ADMIN", "/activity-log/new")).toBe(false);
+    expect(canAccess("USER", "/activity-log")).toBe(false);
+    expect(canAccess("USER", "/activity-log/entry-id")).toBe(false);
+  });
 });

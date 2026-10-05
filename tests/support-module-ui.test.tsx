@@ -178,16 +178,19 @@ describe("SUPPORT queue", () => {
     expect(view.container.querySelector("[aria-label='Tickets de soporte']")).toBeTruthy();
   });
 
-  it("shows an empty state and keeps SUB_MANAGER on its staged placeholder", async () => {
+  it("shows an empty queue to SUB_MANAGER through the shared SUPPORT experience", async () => {
     endpoint("GET", "/api/v1/tickets", () => success([], 200, { page: 1, pageSize: 10, total: 0, totalPages: 0 }));
     endpoint("GET", "/api/v1/catalog/ticket-form", () => success(ticketFormCatalog));
     renderWithClient(<TicketListExperience filters={{}} role="SUPPORT" />);
     expect(await screen.findByText("No hay solicitudes pendientes en tus áreas de soporte.")).toBeTruthy();
     cleanup();
     requests.splice(0);
+    endpoint("GET", "/api/v1/catalog/ticket-form", () => success(ticketFormCatalog));
+    endpoint("GET", "/api/v1/tickets", () => success([], 200, { page: 1, pageSize: 10, total: 0, totalPages: 0 }));
     renderWithClient(<TicketListExperience filters={{}} role="SUB_MANAGER" />);
-    expect(await screen.findByText("Esta vista se implementará en la siguiente etapa.")).toBeTruthy();
-    expect(requests).toHaveLength(0);
+    expect(await screen.findByText("Cola de soporte")).toBeTruthy();
+    expect(await screen.findByText("No hay solicitudes pendientes en tus áreas de soporte.")).toBeTruthy();
+    expect(requests.some((request) => new URL(request.url).pathname === "/api/v1/tickets")).toBe(true);
   });
 
   it("shows queue loading and backend error states", async () => {

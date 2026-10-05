@@ -1,9 +1,8 @@
 # Autenticación y RBAC visual — Pasos 3 y 4
 
 Este documento cubre sesión, onboarding, logout y protección UX por rol.
-`/dashboard` sigue siendo una confirmación temporal de sesión; no contiene
-métricas ni datos de negocio. Los módulos añadidos en el Paso 4 son
-placeholders sin datos de ejemplo.
+`/dashboard` reutiliza dashboard USER o técnico según el rol. Inventario y
+administración permanecen placeholders fuera del alcance actual.
 
 ## Autoridad y cookies
 
@@ -46,9 +45,9 @@ navegador.
 | Rol | Tickets | Nuevo ticket | Bitácora | Inventario | Reportes | Administración | Perfil |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | USER | Sí (Mis tickets) | Sí | No | No | No | No | Sí |
-| SUPPORT | Sí | No | Sí | No | No | No | Sí |
-| SUB_MANAGER | Sí | No | Sí | Sí | No | No | Sí |
-| ADMIN | Sí | No | Sí | Sí | Sí | Categorías y personal | Sí |
+| SUPPORT | Sí (técnico) | No | Sí (lectura) | No | No | No | Sí |
+| SUB_MANAGER | Sí (técnico) | No | Sí (lectura, editar e historial; POST bloqueado por catálogo de participantes) | Sí (placeholder) | No | No | Sí |
+| ADMIN | Sí (sin dashboard implementado) | No | Sí (lectura e historial) | Sí (placeholder) | No (placeholder) | No (fuera de alcance) | Sí |
 
 Todos los roles autenticados conservan Inicio. La protección de URL usa
 coincidencia por segmento y la regla más específica prevalece; por ejemplo,
@@ -57,6 +56,10 @@ accesos directos no autorizados se redirigen a `/forbidden` sin renderizar el
 contenido protegido. Las rutas no declaradas no se autorizan por esta tabla.
 Desktop y móvil consumen la misma lista filtrada. El elemento activo considera
 rutas anidadas sin confundir prefijos parciales.
+
+La ruta `/activity-log/new` tiene regla más específica: solo SUB_MANAGER puede
+acceder. El detalle `/activity-log/{id}` permanece en el grupo de roles de
+staff. USER continúa redirigido a `/forbidden`.
 
 El `RoleGuard` resuelve la política de la ruta y se compone con `SessionGate`:
 la sesión y el rol provienen de una única query `/auth/me`; no existe selector

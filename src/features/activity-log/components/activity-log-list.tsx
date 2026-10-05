@@ -30,7 +30,7 @@ export function ActivityLogList({ filters, role }: { filters: ActivityLogFilters
   const router = useRouter();
   const query = useActivityLogs(filters);
   if (query.isPending) return <ActivityLogSkeleton />;
-  if (query.isError) return <ErrorState title="No se pudo cargar la bitácora" message={query.error.message} requestId={query.error instanceof ApiError ? query.error.requestId : undefined} onRetry={() => { void query.refetch(); }} />;
+  if (query.isError) return <ErrorState title="No se pudo cargar la bitácora" message={query.error instanceof Error ? query.error.message : "Error inesperado."} requestId={query.error instanceof ApiError ? query.error.requestId : undefined} onRetry={() => { void query.refetch(); }} />;
   const { entries, meta } = query.data;
   const queryString = (page: number) => {
     const next = new URLSearchParams();
