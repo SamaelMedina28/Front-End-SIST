@@ -96,7 +96,7 @@ export function TicketListExperience({ filters, role, supportAreas = [] }: { fil
   const page = query.data;
   const hasFilters = !!(safeFilters.search || safeFilters.status || safeFilters.priority || safeFilters.categoryId || safeFilters.subcategoryId || safeFilters.assignment || safeFilters.supportArea || safeFilters.createdFrom || safeFilters.createdTo);
   const queryString = (nextPage: number) => {
-    const search = ticketFilterEntries({ ...filters, page: nextPage });
+    const search = ticketFilterEntries({ ...safeFilters, page: nextPage });
     return `/tickets?${search}`;
   };
   return <section className="grid min-w-0 gap-6">

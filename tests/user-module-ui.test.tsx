@@ -141,11 +141,14 @@ describe("USER ticket listing", () => {
 
   it("ignores malformed subcategory IDs and serializes applied filters to the URL", async () => {
     endpoint("GET", "/api/v1/tickets", (request) => {
-      expect(new URL(request.url).searchParams.get("subcategoryId")).toBeNull();
-      return success([ticket], 200, { page: 1, pageSize: 5, total: 1, totalPages: 1 });
+      const params = new URL(request.url).searchParams;
+      expect(params.get("subcategoryId")).toBeNull();
+      expect(params.get("assignment")).toBeNull();
+      expect(params.get("supportArea")).toBeNull();
+      return success([ticket], 200, { page: 2, pageSize: 5, total: 6, totalPages: 3 });
     });
     endpoint("GET", "/api/v1/catalog/ticket-form", () => success(catalog));
-    const view = renderWithClient(<TicketListExperience filters={{ page: 2, status: "OPEN", subcategoryId: "55555555-5555-4555-8555-555555555555" }} role="USER" />);
+    const view = renderWithClient(<TicketListExperience filters={{ page: 2, status: "OPEN", subcategoryId: "55555555-5555-4555-8555-555555555555", assignment: "mine", supportArea: "NETWORKS" }} role="USER" />);
     expect(await screen.findByText("Mis tickets")).toBeTruthy();
     expect((await screen.findAllByText("TK-2026-0001")).length).toBeGreaterThan(0);
     expect(view.container.querySelector("form")).toBeTruthy();
@@ -153,6 +156,9 @@ describe("USER ticket listing", () => {
     await user.type(screen.getByLabelText("Buscar por código o título"), "proyector");
     await user.click(screen.getByRole("button", { name: "Aplicar filtros" }));
     expect(push).toHaveBeenCalledWith("/tickets?search=proyector&status=OPEN");
+    push.mockClear();
+    await user.click(screen.getByRole("button", { name: "Siguiente" }));
+    expect(push).toHaveBeenCalledWith("/tickets?page=3&status=OPEN");
   });
 });
 
