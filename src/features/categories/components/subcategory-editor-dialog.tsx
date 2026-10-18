@@ -36,7 +36,7 @@ export function SubcategoryEditorDialog({ open, onOpenChange, categoryId, subcat
     } finally { locked.current = false; }
   }
   const fields = form.formState.errors;
-  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent open={open} onOpenChange={onOpenChange}><DialogHeader><DialogTitle>{subcategory ? "Editar subcategoría" : "Agregar subcategoría"}</DialogTitle><DialogDescription>La prioridad vacía utiliza la prioridad predeterminada de la categoría; la API decide la prioridad efectiva del ticket.</DialogDescription></DialogHeader>
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent open={open} onOpenChange={onOpenChange}><DialogHeader><DialogTitle>{subcategory ? "Editar subcategoría" : "Agregar subcategoría"}</DialogTitle><DialogDescription>Si no eliges una prioridad, se usará la predeterminada de la categoría.</DialogDescription></DialogHeader>
     <form aria-busy={pending} className="grid gap-4 px-6 pb-6" noValidate onSubmit={(e) => { void form.handleSubmit(submit)(e); }}>
       {!subcategory && <div className="grid gap-1.5"><label className="text-sm font-medium" htmlFor="subcategory-code">Código</label><Input id="subcategory-code" readOnly={pending} {...form.register("code")} aria-invalid={!!fields.code} />{fields.code?.message && <p className="text-sm text-danger-foreground" role="alert">{fields.code.message}</p>}</div>}
       <div className="grid gap-1.5"><label className="text-sm font-medium" htmlFor="subcategory-name">Nombre</label><Input id="subcategory-name" readOnly={pending} {...form.register("name")} aria-invalid={!!fields.name} />{fields.name?.message && <p className="text-sm text-danger-foreground" role="alert">{fields.name.message}</p>}</div>

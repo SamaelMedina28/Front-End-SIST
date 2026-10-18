@@ -32,7 +32,7 @@ export function SupportDashboardContent() {
   const noRelevantTickets = stats.unassigned === 0 && stats.mine === 0 && stats.highPriority === 0 && priorityTickets.length === 0;
 
   return <section className="grid min-w-0 gap-6">
-    <PageHeader title="Panel de soporte" description="Cola y métricas de las áreas de soporte asignadas a tu cuenta." />
+    <PageHeader title="Panel de soporte" description="Tickets pendientes y métricas de tus áreas de soporte." />
     <div aria-label="Mis áreas de soporte" className="flex flex-wrap items-center gap-2">
       <span className="text-sm text-muted-foreground">Tus áreas:</span>
       {areas.length ? areas.map((area) => <span className="rounded-full border bg-muted px-3 py-1 text-xs font-medium" key={area}>{supportAreaLabel(area)}</span>) : <span className="text-sm text-muted-foreground">Sin áreas configuradas</span>}
@@ -44,9 +44,9 @@ export function SupportDashboardContent() {
       <MetricCard title="Completados hoy" value={String(stats.completedToday)} description="Según la zona horaria configurada" icon={CircleCheck} />
     </div>
     <section className="grid min-w-0 gap-4" aria-labelledby="priority-queue-title">
-      <div><h2 className="text-lg font-semibold" id="priority-queue-title">Atención prioritaria</h2><p className="mt-1 text-sm text-muted-foreground">Tickets prioritarios que el backend incluye en tu cola.</p></div>
+      <div><h2 className="text-lg font-semibold" id="priority-queue-title">Atención prioritaria</h2><p className="mt-1 text-sm text-muted-foreground">Tickets de alta prioridad que requieren tu atención.</p></div>
       {priorityTickets.length > 0 ? <TicketListItems showAssignee tickets={priorityTickets} />
-        : <EmptyState title={noRelevantTickets ? "No hay solicitudes pendientes en tus áreas de soporte." : "No hay tickets prioritarios para mostrar."} description="La cola se actualizará cuando el backend incluya solicitudes relevantes para tu atención." />}
+        : <EmptyState title={noRelevantTickets ? "No hay solicitudes pendientes en tus áreas de soporte." : "No hay tickets prioritarios para mostrar."} description="Aquí aparecerán las nuevas solicitudes de tus áreas." />}
     </section>
   </section>;
 }

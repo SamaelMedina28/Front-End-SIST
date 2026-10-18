@@ -45,8 +45,8 @@ export function SupportMemberDetail({ id }: { id: string }) {
       <Detail label="Cuenta creada">{formatTicketDate(member.createdAt)}</Detail>
       <Detail label="Última actualización">{formatTicketDate(member.updatedAt)}</Detail>
     </CardContent></Card>
-    <Card><CardHeader><CardTitle>Vinculación de cuenta preprovisionada</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">{member.googleLinked ? "La identidad de Google está vinculada. El backend mantiene esa relación y conserva el rol, las áreas y las habilidades." : "Cuando esta persona inicie sesión con Google con el correo preprovisionado, el backend podrá vincular su identidad. No se envían invitaciones ni se configuran contraseñas desde esta pantalla."}</CardContent></Card>
-    <ConfirmDialog confirmLabel="Desactivar integrante" description={<>La cuenta quedará inactiva; se conservarán los tickets, bitácoras y el vínculo de Google. Si tiene tickets abiertos, en revisión o en progreso asignados, el servidor rechazará la operación y la cuenta seguirá visible.</>} onConfirm={() => { void changeActive(false); }} onOpenChange={setConfirmOpen} open={confirmOpen} pending={deactivate.isPending} title="¿Desactivar este integrante?" />
+    <Card><CardHeader><CardTitle>Vinculación con Google</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">{member.googleLinked ? "La cuenta ya está vinculada con Google. Se conservan su rol, áreas y habilidades." : "La cuenta se vinculará automáticamente la primera vez que esta persona inicie sesión con Google usando el correo registrado. No se envían invitaciones ni se crean contraseñas."}</CardContent></Card>
+    <ConfirmDialog confirmLabel="Desactivar integrante" description={<>La cuenta quedará inactiva; se conservarán los tickets, bitácoras y el vínculo de Google. Si tiene tickets abiertos, en revisión o en progreso asignados, no se podrá desactivar hasta reasignarlos o cerrarlos.</>} onConfirm={() => { void changeActive(false); }} onOpenChange={setConfirmOpen} open={confirmOpen} pending={deactivate.isPending} title="¿Desactivar este integrante?" />
   </section>;
 }
 

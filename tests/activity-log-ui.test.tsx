@@ -138,7 +138,7 @@ describe("activity log role-aware experience", () => {
     renderPage(<ActivityLogCreateBlock ticketId={ticketId} />, manager);
     const first = await screen.findByLabelText(/Técnica de prueba/u);
     await userEvent.setup().click(first);
-    fireEvent.change(screen.getByLabelText("Ticket (UUID)"), { target: { value: anotherTicketId } });
+    fireEvent.change(screen.getByLabelText("Ticket"), { target: { value: anotherTicketId } });
     await screen.findByLabelText(/Subencargado alterno/u);
     expect((screen.getByLabelText(/Subencargado alterno/u) as HTMLInputElement).checked).toBe(false);
     expect(requests.some((request) => new URL(request.url).searchParams.get("ticketId") === anotherTicketId)).toBe(true);
@@ -182,7 +182,7 @@ describe("activity log role-aware experience", () => {
     expect(requests.some((request) => request.url.includes("/support-members"))).toBe(false);
     view.unmount();
     renderPage(<ActivityLogCreatePage ticketId={ticketId} />, support);
-    expect(screen.getByText(/únicamente para SUB_MANAGER/u)).toBeTruthy();
+    expect(screen.getByText(/Solo los subencargados pueden registrar/u)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Registrar actividad" })).toBeNull();
   });
 });

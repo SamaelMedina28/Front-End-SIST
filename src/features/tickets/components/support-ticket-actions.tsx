@@ -84,13 +84,13 @@ export function SupportTicketActions({ ticket, user, onRefresh, policy = "suppor
 
   const mutationError = assignMutation.error ?? statusMutation.error;
   const dialogCopy = dialogAction === "assign"
-    ? { title: "Tomar este ticket", description: "El ticket quedará asignado a tu cuenta. Si otro técnico lo toma antes, el servidor conservará la asignación válida.", label: "Confirmar toma" }
+    ? { title: "Tomar este ticket", description: "El ticket quedará asignado a tu cuenta. Si otro técnico lo toma antes que tú, se mantendrá su asignación.", label: "Confirmar toma" }
     : dialogAction === "COMPLETED"
       ? { title: "Completar ticket", description: "Esta acción finalizará la atención. Confirma que el trabajo quedó completado.", label: "Confirmar finalización" }
       : { title: "Cancelar ticket", description: "La cancelación es terminal y requiere una nota para el historial.", label: "Confirmar cancelación" };
 
   return <section aria-labelledby="support-actions-title" className="grid min-w-0 gap-4 rounded-xl border bg-surface p-5">
-    <div><h2 className="text-base font-semibold" id="support-actions-title">{adminMode ? "Estado del ticket" : "Acciones de soporte"}</h2><p className="mt-1 text-sm text-muted-foreground">{adminMode ? "Puedes actualizar el estado globalmente; el servidor valida las transiciones." : area ? `Área: ${supportAreaLabel(area)}` : "Área de soporte no identificada en el contrato."}</p></div>
+    <div><h2 className="text-base font-semibold" id="support-actions-title">{adminMode ? "Estado del ticket" : "Acciones de soporte"}</h2><p className="mt-1 text-sm text-muted-foreground">{adminMode ? "Actualiza el estado del ticket. Solo se muestran los cambios permitidos." : area ? `Área: ${supportAreaLabel(area)}` : "Área de soporte no identificada."}</p></div>
     {terminal ? <p className="rounded-lg border bg-muted p-3 text-sm" role="status">Este ticket ya está finalizado.</p>
       : adminMode ? <div className="grid gap-3">
         <p className="text-sm">Estado actual: <span className="font-medium">{ticketStatusLabel(ticket.status)}</span></p>
@@ -125,7 +125,7 @@ export function SupportTicketActions({ ticket, user, onRefresh, policy = "suppor
       pending={isPending}
       title={dialogCopy.title}
     >
-      {dialogAction === "CANCELLED" && <div className="grid gap-1.5"><label className="text-sm font-medium" htmlFor="support-cancel-note">Nota de cancelación</label><textarea aria-invalid={!!noteError} aria-describedby={noteError ? "support-cancel-note-error" : undefined} className="min-h-24 rounded-lg border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" id="support-cancel-note" onChange={(event) => { setCancelNote(event.target.value); setNoteError(""); }} value={cancelNote} /><p className="text-xs text-muted-foreground">La API requiere una nota para cancelar.</p>{noteError && <p className="text-sm text-destructive" id="support-cancel-note-error" role="alert">{noteError}</p>}</div>}
+      {dialogAction === "CANCELLED" && <div className="grid gap-1.5"><label className="text-sm font-medium" htmlFor="support-cancel-note">Nota de cancelación</label><textarea aria-invalid={!!noteError} aria-describedby={noteError ? "support-cancel-note-error" : undefined} className="min-h-24 rounded-lg border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" id="support-cancel-note" onChange={(event) => { setCancelNote(event.target.value); setNoteError(""); }} value={cancelNote} /><p className="text-xs text-muted-foreground">Es obligatorio indicar el motivo de la cancelación.</p>{noteError && <p className="text-sm text-destructive" id="support-cancel-note-error" role="alert">{noteError}</p>}</div>}
     </ConfirmDialog>
   </section>;
 }

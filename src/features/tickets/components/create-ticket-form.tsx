@@ -43,7 +43,7 @@ export function CreateTicketForm({ user }: { user: CurrentUser }) {
   const pending = mutation.isPending || isSubmitting;
 
   if (catalog.isPending) return <CatalogSkeleton />;
-  if (catalog.isError || !catalog.data) return <ErrorState title="No se pudo cargar el catálogo" message={catalog.error instanceof Error ? catalog.error.message : "El servidor no devolvió los datos del formulario."} requestId={apiRequestId(catalog.error)} onRetry={() => { void catalog.refetch(); }} />;
+  if (catalog.isError || !catalog.data) return <ErrorState title="No se pudo cargar el formulario" message={catalog.error instanceof Error ? catalog.error.message : "No se pudieron obtener los datos del formulario."} requestId={apiRequestId(catalog.error)} onRetry={() => { void catalog.refetch(); }} />;
 
   async function submit(values: CreateTicketFormValues) {
     if (locked.current) return;
@@ -106,7 +106,7 @@ export function CreateTicketForm({ user }: { user: CurrentUser }) {
 
   return <section className="grid min-w-0 gap-6">
     <PageHeader title="Nuevo ticket" description="Describe el problema para que el equipo pueda orientarte." />
-    {catalog.data.maxActiveTickets > 0 && <p className="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">El límite configurado es de {catalog.data.maxActiveTickets} tickets activos. El servidor valida esta regla al enviar la solicitud.</p>}
+    {catalog.data.maxActiveTickets > 0 && <p className="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">Puedes tener hasta {catalog.data.maxActiveTickets} tickets activos al mismo tiempo.</p>}
     <form aria-busy={pending} className="grid min-w-0 gap-5" noValidate onSubmit={(event) => { void handleSubmit(submit)(event); }}>
       <Card><CardHeader><CardTitle>Información de la solicitud</CardTitle></CardHeader><CardContent className="grid min-w-0 gap-5">
         <div className="grid gap-1.5"><label className="text-sm font-medium" htmlFor="ticket-title">Título <span aria-hidden="true">*</span></label><Input id="ticket-title" readOnly={pending} {...register("title")} aria-invalid={!!field("title")} aria-describedby={field("title") ? "title-error" : undefined} />{fieldError("title")}</div>
@@ -128,7 +128,7 @@ export function CreateTicketForm({ user }: { user: CurrentUser }) {
         <div className="grid gap-1.5"><label className="text-sm font-medium" htmlFor="ticket-contact-phone">Teléfono de contacto <span className="font-normal text-muted-foreground">(opcional)</span></label><Input id="ticket-contact-phone" autoComplete="tel" readOnly={pending} {...register("contactPhone")} aria-invalid={!!field("contactPhone")} aria-describedby={field("contactPhone") ? "contactPhone-error" : undefined} />{fieldError("contactPhone")}</div>
         <p className="text-xs text-muted-foreground">El sistema determina prioridad y estado inicial a partir de sus reglas. No se envían opciones de estado, prioridad ni asignación.</p>
       </CardContent></Card>
-      {mutation.isError && <ErrorState title={mutation.error instanceof ApiError && mutation.error.status === 409 ? "El servidor rechazó la solicitud por un conflicto" : "No se pudo crear el ticket"} message={mutation.error.message} requestId={apiRequestId(mutation.error)} />}
+      {mutation.isError && <ErrorState title={mutation.error instanceof ApiError && mutation.error.status === 409 ? "No se pudo crear el ticket por un conflicto" : "No se pudo crear el ticket"} message={mutation.error.message} requestId={apiRequestId(mutation.error)} />}
       <div className="flex flex-wrap justify-end gap-3"><Button disabled={pending} type="button" variant="outline" onClick={() => router.push("/tickets")}>Volver</Button><Button disabled={pending} type="submit">{pending ? "Creando…" : "Crear ticket"}</Button></div>
       <span className="sr-only" role="status">{pending ? "Creando ticket" : ""}</span>
     </form>

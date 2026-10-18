@@ -130,7 +130,7 @@ describe("ADMIN support member screens", () => {
     await user.click(screen.getByLabelText("Hardware"));
     await user.type(screen.getByLabelText("Nueva habilidad"), "Mantenimiento");
     await user.click(screen.getByRole("button", { name: "Agregar habilidad" }));
-    await user.click(screen.getByRole("button", { name: "Preprovisionar cuenta" }));
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
     await waitFor(() => expect(push).toHaveBeenCalledWith(`/admin/support-members/${memberId}`));
     expect(body).toEqual({ fullName: "Técnica Ejemplo", email: "tecnica@example.edu", institutionalId: "A-123", role: "SUB_MANAGER", supportAreas: ["HARDWARE"], skills: ["Mantenimiento"] });
     expect(body).not.toHaveProperty("password");
@@ -142,7 +142,7 @@ describe("ADMIN support member screens", () => {
     await user.type(screen.getByLabelText("Nombre completo"), "Técnica Existente");
     await user.type(screen.getByLabelText("Correo institucional"), "tecnica@example.edu");
     await user.type(screen.getByLabelText("Matrícula o número institucional"), "A-123");
-    await user.click(screen.getByRole("button", { name: "Preprovisionar cuenta" }));
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
     expect(await screen.findByText("El correo o identificador institucional ya está registrado")).toBeTruthy();
     expect(screen.getByText("Solicitud: duplicate-support-request")).toBeTruthy();
     expect(screen.getByDisplayValue("Técnica Existente")).toBeTruthy();
