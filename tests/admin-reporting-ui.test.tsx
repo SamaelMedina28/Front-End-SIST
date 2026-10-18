@@ -27,7 +27,7 @@ const admin: CurrentUser = { ...testUser, role: "ADMIN" };
 const categoryId = "11111111-1111-4111-8111-111111111111";
 const technicianId = "22222222-2222-4222-8222-222222222222";
 const category = { id: categoryId, code: "PROJECTOR", name: "Proyectores", supportArea: "HARDWARE" as const, defaultPriority: "MEDIUM" as const, requiresSoftwareDetails: false, isActive: true, subcategories: [] };
-const technician = { id: technicianId, fullName: "Ana López", email: "ana@example.invalid", institutionalId: "A-1", communityType: "TEACHER" as const, role: "SUPPORT" as const, supportAreas: ["HARDWARE" as const], skills: [], isActive: true, googleLinked: true, lastLoginAt: null };
+const technician = { id: technicianId, fullName: "Ana López", email: "ana@example.invalid", institutionalId: "A-1", role: "SUPPORT" as const, supportAreas: ["HARDWARE" as const], skills: [], isActive: true, googleLinked: true, lastLoginAt: null };
 const reportData: ActivityReport = {
   summary: { ticketsCreated: 5, ticketsCompleted: 3, pending: 2, averageResolutionMinutes: 90 },
   byCategory: [{ categoryId, category: "Proyectores", count: 5 }],

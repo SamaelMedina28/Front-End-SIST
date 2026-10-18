@@ -160,7 +160,6 @@ export interface paths {
                     /**
                      * @example {
                      *       "institutionalId": "1287456",
-                     *       "communityType": "STUDENT",
                      *       "phone": null
                      *     }
                      */
@@ -1192,7 +1191,7 @@ export interface paths {
         put?: never;
         /**
          * Crear ticket
-         * @description Crea un ticket OPEN y su evento CREATED de forma atómica. La prioridad proviene de la subcategoría o categoría; el servidor guarda snapshots, limita a 10 tickets activos por USER y protege duplicados por categoría y ubicación normalizada (sin considerar subcategoría) con UNIQUE. Las solicitudes de software requieren TEACHER.
+         * @description Crea un ticket OPEN y su evento CREATED de forma atómica. La prioridad proviene de la subcategoría o categoría; el servidor guarda snapshots, limita a 10 tickets activos por USER y protege duplicados por categoría y ubicación normalizada (sin considerar subcategoría) con UNIQUE. Las solicitudes de software requieren la referencia de aprobación de coordinación.
          */
         post: {
             parameters: {
@@ -3486,8 +3485,6 @@ export interface components {
             email: string;
             institutionalId: string;
             /** @enum {string} */
-            communityType: "STUDENT" | "TEACHER" | "ADMINISTRATIVE";
-            /** @enum {string} */
             role: "SUPPORT" | "SUB_MANAGER";
             supportAreas: ("HARDWARE" | "SOFTWARE" | "NETWORKS" | "ADMINISTRATIVE")[];
             skills: string[];
@@ -3507,8 +3504,6 @@ export interface components {
             /** Format: email */
             email: string;
             institutionalId: string;
-            /** @enum {string} */
-            communityType: "STUDENT" | "TEACHER" | "ADMINISTRATIVE";
             /** @enum {string} */
             role: "SUPPORT" | "SUB_MANAGER";
             supportAreas: ("HARDWARE" | "SOFTWARE" | "NETWORKS" | "ADMINISTRATIVE")[];
@@ -3875,8 +3870,6 @@ export interface components {
             phone: string | null;
             /** @enum {string} */
             role: "USER" | "SUPPORT" | "SUB_MANAGER" | "ADMIN";
-            /** @enum {string} */
-            communityType: "STUDENT" | "TEACHER" | "ADMINISTRATIVE";
             supportAreas: string[];
             skills: string[];
             avatarUrl: string | null;
@@ -4036,7 +4029,6 @@ export interface components {
                 /** Format: email */
                 email?: string;
                 phone?: string | null;
-                communityType?: string;
             };
             category: {
                 /** Format: uuid */
@@ -4111,8 +4103,6 @@ export interface components {
         };
         CompleteProfileInput: {
             institutionalId: string;
-            /** @enum {string} */
-            communityType: "STUDENT" | "TEACHER" | "ADMINISTRATIVE";
             phone?: string | null;
         };
         UpdateUserProfileInput: {

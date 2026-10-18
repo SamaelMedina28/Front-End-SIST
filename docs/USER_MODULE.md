@@ -30,8 +30,9 @@ La lista usa `page`, `pageSize`, `search`, `status`, `priority`, `categoryId`,
 propietario: el servidor entrega el conjunto permitido para la sesión.
 
 El formulario refleja `maxActiveTickets` y `requiresSoftwareDetails` del catálogo.
-Los campos de software solo se habilitan para perfil docente conforme a la
-descripción del endpoint. No hay selector de inventario en el contrato USER
+Cuando la categoría requiere datos de software, cualquier USER puede enviarlos,
+pero los cuatro campos son obligatorios (incluida la referencia de autorización
+de coordinación). No hay selector de inventario en el contrato USER
 disponible. El backend puede responder 409 por restricciones como duplicados o
 límite de tickets activos; como OpenAPI no enumera códigos específicos para
 esas causas, la interfaz preserva los datos y muestra el mensaje/request ID

@@ -35,7 +35,7 @@ function renderWithClient(children: ReactNode) {
 }
 function CatalogProbe() { useTicketFormCatalog(); return null; }
 const category: Category = { id: categoryId, code: "TECH_HELP", name: "Soporte técnico", supportArea: "HARDWARE", defaultPriority: null, requiresSoftwareDetails: false, isActive: true, subcategories: [] };
-const member: SupportMemberListItem = { id: memberId, fullName: "Técnica Ejemplo", email: "tecnica@example.edu", institutionalId: "A-123", communityType: "ADMINISTRATIVE", role: "SUPPORT", supportAreas: ["HARDWARE", "SOFTWARE"], skills: ["Mantenimiento"], isActive: true, googleLinked: false, lastLoginAt: null };
+const member: SupportMemberListItem = { id: memberId, fullName: "Técnica Ejemplo", email: "tecnica@example.edu", institutionalId: "A-123", role: "SUPPORT", supportAreas: ["HARDWARE", "SOFTWARE"], skills: ["Mantenimiento"], isActive: true, googleLinked: false, lastLoginAt: null };
 
 beforeEach(() => {
   push.mockReset(); handlers.clear(); requests.splice(0); fetchMock.mockReset();
@@ -124,7 +124,6 @@ describe("ADMIN support member screens", () => {
     await user.type(screen.getByLabelText("Nombre completo"), "Técnica Ejemplo");
     await user.type(screen.getByLabelText("Correo institucional"), "tecnica@example.edu");
     await user.type(screen.getByLabelText("Matrícula o número institucional"), "A-123");
-    await user.selectOptions(screen.getByLabelText("Tipo de comunidad"), "ADMINISTRATIVE");
     const role = screen.getByLabelText("Rol del sistema");
     expect(Array.from((role as HTMLSelectElement).options).map((option) => option.value)).toEqual(["SUPPORT", "SUB_MANAGER"]);
     await user.selectOptions(role, "SUB_MANAGER");
@@ -133,7 +132,7 @@ describe("ADMIN support member screens", () => {
     await user.click(screen.getByRole("button", { name: "Agregar habilidad" }));
     await user.click(screen.getByRole("button", { name: "Preprovisionar cuenta" }));
     await waitFor(() => expect(push).toHaveBeenCalledWith(`/admin/support-members/${memberId}`));
-    expect(body).toEqual({ fullName: "Técnica Ejemplo", email: "tecnica@example.edu", institutionalId: "A-123", communityType: "ADMINISTRATIVE", role: "SUB_MANAGER", supportAreas: ["HARDWARE"], skills: ["Mantenimiento"] });
+    expect(body).toEqual({ fullName: "Técnica Ejemplo", email: "tecnica@example.edu", institutionalId: "A-123", role: "SUB_MANAGER", supportAreas: ["HARDWARE"], skills: ["Mantenimiento"] });
     expect(body).not.toHaveProperty("password");
   });
 
@@ -143,21 +142,20 @@ describe("ADMIN support member screens", () => {
     await user.type(screen.getByLabelText("Nombre completo"), "Técnica Existente");
     await user.type(screen.getByLabelText("Correo institucional"), "tecnica@example.edu");
     await user.type(screen.getByLabelText("Matrícula o número institucional"), "A-123");
-    await user.selectOptions(screen.getByLabelText("Tipo de comunidad"), "TEACHER");
     await user.click(screen.getByRole("button", { name: "Preprovisionar cuenta" }));
     expect(await screen.findByText("El correo o identificador institucional ya está registrado")).toBeTruthy();
     expect(screen.getByText("Solicitud: duplicate-support-request")).toBeTruthy();
     expect(screen.getByDisplayValue("Técnica Existente")).toBeTruthy();
   });
 
-  it("edits only dirty support-member fields and leaves email/community identity read-only", async () => {
+  it("edits only dirty support-member fields and leaves email/institutional identity read-only", async () => {
     let body: unknown;
     const detail = { ...member, createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-02T00:00:00.000Z" };
     endpoint("PATCH", `/api/v1/support-members/${memberId}`, async (request) => { body = await request.json(); return response({ ...detail, role: "SUB_MANAGER" }); });
     const user = userEvent.setup(); renderWithClient(<SupportMemberForm member={detail} />);
     expect((screen.getByLabelText("Correo institucional") as HTMLInputElement).readOnly).toBe(true);
     expect((screen.getByLabelText("Matrícula o número institucional") as HTMLInputElement).readOnly).toBe(true);
-    expect((screen.getByLabelText("Tipo de comunidad") as HTMLSelectElement).disabled).toBe(true);
+    expect(screen.queryByLabelText("Tipo de comunidad")).toBeNull();
     await user.selectOptions(screen.getByLabelText("Rol del sistema"), "SUB_MANAGER");
     await user.click(screen.getByLabelText("Hardware"));
     await user.click(screen.getByLabelText("Software"));

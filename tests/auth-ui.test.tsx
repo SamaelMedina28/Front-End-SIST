@@ -171,7 +171,6 @@ describe("role guard", () => {
 
 async function fillProfile() {
   await userEvent.type(screen.getByLabelText(/Matrícula/), "TEST");
-  await userEvent.selectOptions(screen.getByLabelText(/Comunidad universitaria/), "STUDENT");
 }
 
 describe("onboarding form", () => {

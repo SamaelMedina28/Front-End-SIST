@@ -60,11 +60,6 @@ export function CreateTicketForm({ user }: { user: CurrentUser }) {
       locked.current = false;
       return;
     }
-    if (category.supportArea === "SOFTWARE" && user.communityType !== "TEACHER") {
-      setError("categoryId", { type: "validate", message: "El contrato del servicio indica que las solicitudes de software están disponibles para docentes. Contacta a soporte si necesitas orientación." }, { shouldFocus: true });
-      locked.current = false;
-      return;
-    }
     if (category.requiresSoftwareDetails) {
       const requiredFields = [
         ["softwareName", values.softwareName, "Ingresa el nombre del software."],
@@ -119,7 +114,6 @@ export function CreateTicketForm({ user }: { user: CurrentUser }) {
           <div className="grid min-w-0 gap-1.5"><label className="text-sm font-medium" htmlFor="ticket-category">Categoría <span aria-hidden="true">*</span></label><Select disabled={pending} id="ticket-category" {...register("categoryId", { onChange: () => { setValue("subcategoryId", ""); setValue("softwareName", ""); setValue("softwareVersion", ""); setValue("softwareDownloadUrl", ""); setValue("coordinationApprovalReference", ""); clearErrors(); } })} aria-invalid={!!field("categoryId")} aria-describedby={field("categoryId") ? "categoryId-error" : undefined}><option value="">Selecciona una categoría</option>{catalog.data.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</Select>{fieldError("categoryId")}</div>
           <div className="grid min-w-0 gap-1.5"><label className="text-sm font-medium" htmlFor="ticket-subcategory">Subcategoría{(selectedCategory?.subcategories.length ?? 0) > 0 && <span aria-hidden="true"> *</span>}</label><Select disabled={pending || !selectedCategory || selectedCategory.subcategories.length === 0} id="ticket-subcategory" {...register("subcategoryId")} aria-invalid={!!field("subcategoryId")} aria-describedby={field("subcategoryId") ? "subcategoryId-error" : undefined}><option value="">{selectedCategory?.subcategories.length ? "Selecciona una subcategoría" : "No aplica"}</option>{selectedCategory?.subcategories.map((subcategory) => <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>)}</Select>{fieldError("subcategoryId")}</div>
         </div>
-        {selectedCategory?.supportArea === "SOFTWARE" && user.communityType !== "TEACHER" && <p className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm" role="status">El contrato de la API indica que las solicitudes de software requieren perfil docente. Esta restricción también se valida en el servidor.</p>}
         {selectedCategory?.requiresSoftwareDetails && <fieldset className="grid min-w-0 gap-4 rounded-xl border p-4 md:grid-cols-2"><legend className="px-1 text-sm font-semibold">Información del software</legend>
           <div className="grid min-w-0 gap-1.5"><label className="text-sm font-medium" htmlFor="software-name">Nombre del software <span aria-hidden="true">*</span></label><Input id="software-name" readOnly={pending} {...register("softwareName")} aria-invalid={!!field("softwareName")} aria-describedby={field("softwareName") ? "softwareName-error" : undefined} />{fieldError("softwareName")}</div>
           <div className="grid min-w-0 gap-1.5"><label className="text-sm font-medium" htmlFor="software-version">Versión <span aria-hidden="true">*</span></label><Input id="software-version" readOnly={pending} {...register("softwareVersion")} aria-invalid={!!field("softwareVersion")} aria-describedby={field("softwareVersion") ? "softwareVersion-error" : undefined} />{fieldError("softwareVersion")}</div>
@@ -135,7 +129,7 @@ export function CreateTicketForm({ user }: { user: CurrentUser }) {
         <p className="text-xs text-muted-foreground">El sistema determina prioridad y estado inicial a partir de sus reglas. No se envían opciones de estado, prioridad ni asignación.</p>
       </CardContent></Card>
       {mutation.isError && <ErrorState title={mutation.error instanceof ApiError && mutation.error.status === 409 ? "El servidor rechazó la solicitud por un conflicto" : "No se pudo crear el ticket"} message={mutation.error.message} requestId={apiRequestId(mutation.error)} />}
-      <div className="flex flex-wrap justify-end gap-3"><Button disabled={pending} type="button" variant="outline" onClick={() => router.push("/tickets")}>Volver</Button><Button disabled={pending || (selectedCategory?.supportArea === "SOFTWARE" && user.communityType !== "TEACHER")} type="submit">{pending ? "Creando…" : "Crear ticket"}</Button></div>
+      <div className="flex flex-wrap justify-end gap-3"><Button disabled={pending} type="button" variant="outline" onClick={() => router.push("/tickets")}>Volver</Button><Button disabled={pending} type="submit">{pending ? "Creando…" : "Crear ticket"}</Button></div>
       <span className="sr-only" role="status">{pending ? "Creando ticket" : ""}</span>
     </form>
   </section>;

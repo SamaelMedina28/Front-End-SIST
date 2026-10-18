@@ -52,19 +52,19 @@ describe("auth HTTP contract", () => {
     client.clear();
   });
 
-  it("sends only the generated onboarding fields, preserving the real enum and optional phone", async () => {
+  it("sends only the generated onboarding fields and optional phone", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ success: true, data: testUser }, 201));
-    const parsed = completeProfileSchema.parse({ institutionalId: "  TEST  ", communityType: "STUDENT", phone: "" });
+    const parsed = completeProfileSchema.parse({ institutionalId: "  TEST  ", phone: "" });
     await completeProfile(profileRequest(parsed));
     expect(lastRequest().method).toBe("POST");
     expect(lastRequest().credentials).toBe("include");
-    expect(await lastRequest().json()).toEqual({ institutionalId: "TEST", communityType: "STUDENT", phone: null });
-    expect(completeProfileSchema.safeParse({ institutionalId: "", communityType: "Estudiante", phone: "" }).success).toBe(false);
+    expect(await lastRequest().json()).toEqual({ institutionalId: "TEST", phone: null });
+    expect(completeProfileSchema.safeParse({ institutionalId: "", phone: "" }).success).toBe(false);
   });
 
   it("preserves onboarding API errors for inline rendering", async () => {
     fetchMock.mockResolvedValueOnce(errorResponse(422, "VALIDATION_ERROR", { phone: ["Revisa el teléfono."] }));
-    await expect(completeProfile({ institutionalId: "TEST", communityType: "TEACHER" })).rejects.toMatchObject({
+    await expect(completeProfile({ institutionalId: "TEST" })).rejects.toMatchObject({
       status: 422, fields: { phone: ["Revisa el teléfono."] }, requestId: "test-request",
     });
   });

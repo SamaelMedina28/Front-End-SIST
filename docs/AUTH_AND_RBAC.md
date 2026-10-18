@@ -40,7 +40,7 @@ permanece en `docs/DESIGN_SYSTEM.md`.
 La configuración única de navegación y rutas está en
 `src/components/layout/navigation.ts`. El tipo `Role` se deriva del schema
 OpenAPI generado `User['role']`; no se duplica el enum. La interfaz consulta
-exclusivamente ese campo, no `communityType`, `supportAreas` ni claims del
+exclusivamente ese campo, no `supportAreas` ni claims del
 navegador.
 
 | Rol | Tickets | Nuevo ticket | Bitácora | Inventario | Reportes | Administración | Perfil |
@@ -65,7 +65,7 @@ staff. USER continúa redirigido a `/forbidden`.
 `/admin/categories` y `/admin/support-members` son ADMIN-only; sus segmentos
 anidados (alta, detalle y edición) heredan la misma regla de ruta. USER, SUPPORT
 y SUB_MANAGER van a `/forbidden`. El formulario de personal técnico solo
-permite SUPPORT/SUB_MANAGER; `communityType` es un dato separado. El backend
+permite SUPPORT/SUB_MANAGER. El backend
 preprovisiona la cuenta y enlaza Google OAuth en el primer acceso, sin invitación
 ni contraseña local. PATCH admite `isActive`, por lo que la interfaz permite
 reactivación; DELETE es baja lógica y puede devolver conflicto por tickets
@@ -118,14 +118,13 @@ archivo generado:
 ```ts
 {
   institutionalId: string;
-  communityType: 'STUDENT' | 'TEACHER' | 'ADMINISTRATIVE';
   phone?: string | null;
 }
 ```
 
-Las etiquetas Estudiante, Docente y Administrativo son presentación; el request
-envía el enum. React Hook Form y Zod validan identificador no vacío y selección
-válida. Los límites y las reglas institucionales pertenecen a Express. Se
+El usuario no elige si es estudiante, docente o administrativo: ese dato se
+eliminó porque era autodeclarado y no aportaba control real. Todo usuario nuevo
+nace como `USER`. React Hook Form y Zod validan identificador no vacío. Los límites y las reglas institucionales pertenecen a Express. Se
 recortan espacios y el teléfono vacío se envía como `null`; sigue siendo opcional.
 
 Un bloqueo síncrono impide dos POST concurrentes, además del estado pending

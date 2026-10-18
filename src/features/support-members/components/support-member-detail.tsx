@@ -12,7 +12,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDeactivateSupportMember, usePatchSupportMember } from "../mutations/support-members";
 import { useSupportMember } from "../queries/support-members";
-import { communityTypeNames, supportAreaNames } from "../schemas/support-member";
+import { supportAreaNames } from "../schemas/support-member";
 import { ApiError } from "@/lib/api/api-error";
 import { apiRequestId } from "@/lib/api/form-error";
 import { formatTicketDate } from "@/features/tickets/utils/format-date";
@@ -38,7 +38,6 @@ export function SupportMemberDetail({ id }: { id: string }) {
     <Card><CardHeader><CardTitle>Perfil de soporte</CardTitle></CardHeader><CardContent className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       <Detail label="Estado"><Badge tone={member.isActive ? "success" : "neutral"}>{member.isActive ? "Activo" : "Inactivo"}</Badge></Detail>
       <Detail label="Rol"><RoleBadge role={member.role} /></Detail>
-      <Detail label="Tipo de comunidad">{communityTypeNames[member.communityType]}</Detail>
       <Detail label="Áreas de soporte"><div className="flex flex-wrap gap-2">{member.supportAreas.length ? member.supportAreas.map((area) => <Badge key={area} tone="info">{supportAreaNames[area]}</Badge>) : <span>Sin áreas asignadas</span>}</div></Detail>
       <Detail label="Habilidades"><div className="flex flex-wrap gap-2">{member.skills.length ? member.skills.map((skill, index) => <Badge key={`${skill}-${index}`} tone="neutral">{skill}</Badge>) : <span>Sin habilidades registradas</span>}</div></Detail>
       <Detail label="Vínculo Google">{member.googleLinked ? "Vinculado" : "Pendiente de primer acceso"}</Detail>

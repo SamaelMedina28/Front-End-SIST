@@ -209,14 +209,14 @@ describe("ticket creation", () => {
     expect(screen.getByDisplayValue("Ticket que se conserva")).toBeTruthy();
   });
 
-  it("shows software detail fields only when the backend catalog requires them and honors the teacher restriction", async () => {
+  it("shows software detail fields only when the backend catalog requires them and lets any USER submit them", async () => {
     const softwareCatalog = { maxActiveTickets: 10 as const, categories: [{ ...catalog.categories[0], supportArea: "SOFTWARE" as const, requiresSoftwareDetails: true, subcategories: [] }] };
     endpoint("GET", "/api/v1/catalog/ticket-form", () => success(softwareCatalog));
     renderWithClient(<CreateTicketForm user={testUser} />);
     await userEvent.selectOptions(await screen.findByLabelText(/Categoría/), categoryId);
     expect(screen.getByLabelText(/URL de descarga/)).toBeTruthy();
-    expect(screen.getAllByRole("status").some((status) => status.textContent?.includes("requieren perfil docente"))).toBe(true);
-    expect(screen.getByRole("button", { name: "Crear ticket" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.getByLabelText(/autorización de coordinación/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Crear ticket" }).hasAttribute("disabled")).toBe(false);
   });
 });
 

@@ -8,7 +8,6 @@ export const testUser: CurrentUser = {
   institutionalId: "TEST",
   phone: null,
   role: "USER",
-  communityType: "STUDENT",
   supportAreas: [],
   skills: [],
   avatarUrl: null,

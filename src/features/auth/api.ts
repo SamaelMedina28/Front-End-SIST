@@ -6,7 +6,6 @@ import type { components } from "@/types/api.generated";
 
 export type CurrentUser = components["schemas"]["User"];
 export type CompleteProfileInput = components["schemas"]["CompleteProfileInput"];
-export type CommunityType = CurrentUser["communityType"];
 
 export function googleLoginUrl(backendUrl = getPublicEnvironment().NEXT_PUBLIC_BACKEND_URL) {
   return new URL("/api/v1/auth/google", backendUrl).href;

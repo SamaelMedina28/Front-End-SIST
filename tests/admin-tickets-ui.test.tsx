@@ -39,7 +39,7 @@ const detail: TicketDetail = {
   createdAt: "2026-10-01T12:00:00.000Z", updatedAt: "2026-10-01T12:00:00.000Z", assignedAt: "2026-10-01T12:00:00.000Z", completedAt: null, cancelledAt: null,
 };
 const supportMember = {
-  id: supportId, fullName: "Técnica candidata", email: "tech@example.invalid", institutionalId: "TECH-1", communityType: "TEACHER" as const,
+  id: supportId, fullName: "Técnica candidata", email: "tech@example.invalid", institutionalId: "TECH-1",
   role: "SUPPORT" as const, supportAreas: ["HARDWARE" as const], skills: ["Proyectores"], isActive: true, googleLinked: true, lastLoginAt: null,
 };
 const subManager = { ...supportMember, id: "66666666-6666-4666-8666-666666666666", fullName: "Subencargado candidato", role: "SUB_MANAGER" as const };

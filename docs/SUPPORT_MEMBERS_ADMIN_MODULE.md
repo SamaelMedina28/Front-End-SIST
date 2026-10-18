@@ -14,11 +14,11 @@ La tabla desktop y las tarjetas móviles consumen filtros y paginación del serv
 
 ## Schemas y campos
 
-`SupportMemberListItem`: `id`, `fullName`, `email`, `institutionalId`, `communityType`, `role`, `supportAreas`, `skills`, `isActive`, `googleLinked` y `lastLoginAt`. `SupportMember` agrega `createdAt` y `updatedAt`; no se muestra `googleSubject`.
+`SupportMemberListItem`: `id`, `fullName`, `email`, `institutionalId`, `role`, `supportAreas`, `skills`, `isActive`, `googleLinked` y `lastLoginAt`. `SupportMember` agrega `createdAt` y `updatedAt`; no se muestra `googleSubject`.
 
-`CreateSupportMemberRequest` requiere `fullName`, `email`, `institutionalId`, `communityType`, `role`, `supportAreas` y `skills`. El rol solo puede ser `SUPPORT` o `SUB_MANAGER`; el tipo de comunidad es `STUDENT | TEACHER | ADMINISTRATIVE`, un atributo distinto del rol. Email se valida por formato básico en UI y backend mantiene unicidad.
+`CreateSupportMemberRequest` requiere `fullName`, `email`, `institutionalId`, `role`, `supportAreas` y `skills`. El rol solo puede ser `SUPPORT` o `SUB_MANAGER`. Email se valida por formato básico en UI y backend mantiene unicidad.
 
-`PatchSupportMemberRequest` admite únicamente `fullName`, `role`, `supportAreas`, `skills` e `isActive`; el cliente envía solo propiedades dirty. Email, número institucional y tipo de comunidad son read-only en edición. El formulario no crea ni solicita contraseñas, no ofrece ADMIN/USER y no envía invitaciones.
+`PatchSupportMemberRequest` admite únicamente `fullName`, `role`, `supportAreas`, `skills` e `isActive`; el cliente envía solo propiedades dirty. Email y número institucional son read-only en edición. El formulario no crea ni solicita contraseñas, no ofrece ADMIN/USER y no envía invitaciones.
 
 Las áreas se envían como los enums `HARDWARE`, `SOFTWARE`, `NETWORKS`, `ADMINISTRATIVE`; las habilidades son `string[]` y se presentan como etiquetas sin una lista de catálogo. Se eliminan espacios externos, entradas vacías y duplicados exactos al agregar/guardar.
 

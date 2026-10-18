@@ -17,7 +17,7 @@ import { ApiError } from "@/lib/api/api-error";
 import { apiFieldMessage, apiRequestId } from "@/lib/api/form-error";
 import type { SupportMember } from "../api";
 import { useCreateSupportMember, usePatchSupportMember } from "../mutations/support-members";
-import { communityTypeNames, communityTypeOptions, normalizeSkills, supportAreaNames, supportAreaOptions, supportMemberFormValues, supportMemberSchema, supportRoleNames, supportRoleOptions, toCreateSupportMember, toSupportMemberPatch, type SupportMemberFormValues } from "../schemas/support-member";
+import { normalizeSkills, supportAreaNames, supportAreaOptions, supportMemberFormValues, supportMemberSchema, supportRoleNames, supportRoleOptions, toCreateSupportMember, toSupportMemberPatch, type SupportMemberFormValues } from "../schemas/support-member";
 
 export function SupportMemberForm({ member }: { member?: SupportMember }) {
   const router = useRouter(); const create = useCreateSupportMember(); const update = usePatchSupportMember(member?.id ?? ""); const locked = useRef(false);
@@ -49,14 +49,10 @@ export function SupportMemberForm({ member }: { member?: SupportMember }) {
         if (!Object.keys(body).length) { router.push(`/admin/support-members/${member.id}`); return; }
         await update.mutateAsync(body); router.push(`/admin/support-members/${member.id}`);
       } else {
-        if (!values.communityType) {
-          form.setError("communityType", { type: "validate", message: "Selecciona el tipo de comunidad." }, { shouldFocus: true });
-          return;
-        }
-        const created = await create.mutateAsync(toCreateSupportMember({ ...values, communityType: values.communityType })); router.push(`/admin/support-members/${created.id}`);
+        const created = await create.mutateAsync(toCreateSupportMember(values)); router.push(`/admin/support-members/${created.id}`);
       }
     } catch (error) {
-      for (const field of ["fullName", "email", "institutionalId", "communityType", "role", "supportAreas", "skills", "isActive"] as const) {
+      for (const field of ["fullName", "email", "institutionalId", "role", "supportAreas", "skills", "isActive"] as const) {
         const message = apiFieldMessage(error, field);
         if (message) form.setError(field, { type: "server", message });
       }
@@ -72,7 +68,6 @@ export function SupportMemberForm({ member }: { member?: SupportMember }) {
         <Field id="support-full-name" label="Nombre completo" error={errors.fullName?.message}><Input autoComplete="name" id="support-full-name" readOnly={pending} {...form.register("fullName")} aria-invalid={!!errors.fullName} /></Field>
         <Field id="support-email" label="Correo institucional" error={errors.email?.message}><Input autoComplete="email" id="support-email" readOnly={pending || !!member} type="email" {...form.register("email")} aria-invalid={!!errors.email} />{member && <small className="text-muted-foreground">El correo no es editable desde este contrato.</small>}</Field>
         <Field id="support-institutional-id" label="Matrícula o número institucional" error={errors.institutionalId?.message}><Input id="support-institutional-id" readOnly={pending || !!member} {...form.register("institutionalId")} aria-invalid={!!errors.institutionalId} />{member && <small className="text-muted-foreground">Este identificador no es editable desde este contrato.</small>}</Field>
-        <Field id="support-community-type" label="Tipo de comunidad" error={errors.communityType?.message}><Select disabled={pending || !!member} id="support-community-type" {...form.register("communityType")}><option value="">Selecciona un tipo</option>{communityTypeOptions.map((value) => <option key={value} value={value}>{communityTypeNames[value]}</option>)}</Select>{member && <small className="text-muted-foreground">El tipo de comunidad es informativo y no se incluye en PATCH.</small>}</Field>
         <Field id="support-role" label="Rol del sistema" error={errors.role?.message}><Select disabled={pending} id="support-role" {...form.register("role")}>{supportRoleOptions.map((value) => <option key={value} value={value}>{supportRoleNames[value]}</option>)}</Select></Field>
         {member && <label className="flex items-center gap-3 rounded-lg border p-3 text-sm md:col-span-2"><Checkbox disabled={pending} {...form.register("isActive")} />Cuenta activa <span className="text-xs text-muted-foreground">(PATCH permite cambiar el estado y reactivar)</span></label>}
       </CardContent></Card>

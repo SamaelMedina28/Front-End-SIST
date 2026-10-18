@@ -79,7 +79,7 @@ deduplicación y límite concurrente.
   `User.supportAreas` y algunos campos de detalle/revisión. La UI valida áreas
   antes de mapearlas; status/priority desconocidos se representan con fallback
   textual y no habilitan acciones de transición.
-- Los enums que sí están definidos (roles, comunidad, prioridad de request,
+- Los enums que sí están definidos (roles, prioridad de request,
   estados de ticket, áreas) se derivan del schema generado; no se mantiene un
   contrato paralelo incompatible.
 - La selección de participantes para alta procede del catálogo específico de
@@ -117,8 +117,7 @@ cookie temporal permite completar el formulario. Los 403 no se convierten en
   Logout hace POST al backend, elimina cachés privadas en memoria y vuelve a
   `/login`. Onboarding POST no se reintenta automáticamente y se confirma con
   una lectura fresca de `/auth/me` en `/auth/success`.
-- `role` controla presentación/permisos de UX. `communityType` es información
-  institucional separada; `supportAreas` y `skills` ayudan a filtrar o
+- `role` controla presentación/permisos de UX; `supportAreas` y `skills` ayudan a filtrar o
   contextualizar, nunca sustituyen autorización backend.
 - Matriz: USER: dashboard/tickets propios/nuevo ticket/perfil; SUPPORT:
   dashboard/cola/bitácora lectura/perfil; SUB_MANAGER: funciones SUPPORT,
